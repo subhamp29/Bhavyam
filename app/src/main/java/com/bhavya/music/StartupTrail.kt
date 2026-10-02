@@ -59,3 +59,4 @@ object StartupTrail {
             .joinToString("\n").ifBlank { "(empty startup trail)" }
     }
 }
+
