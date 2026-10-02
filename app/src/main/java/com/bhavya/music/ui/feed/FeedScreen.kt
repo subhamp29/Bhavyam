@@ -33,6 +33,9 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -1181,14 +1184,14 @@ private fun QuickTilesGrid(
     tiles: List<FeedQuickTile>,
     onTileClick: (FeedQuickTile) -> Unit,
 ) {
-    androidx.compose.foundation.lazy.grid.LazyHorizontalGrid(
-        rows = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
         modifier = Modifier.fillMaxWidth().height(160.dp),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        androidx.compose.foundation.lazy.grid.items(tiles, key = { "${it.title}_${it.collection ?: ""}_${it.playlistId ?: ""}_${it.localPlaylistId ?: ""}" }) { tile ->
+        items(tiles, key = { "${it.title}_${it.collection ?: ""}_${it.playlistId ?: ""}_${it.localPlaylistId ?: ""}" }) { tile ->
             QuickTileCard(
                 tile = tile,
                 onClick = { onTileClick(tile) },

@@ -90,6 +90,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ClearAll
@@ -700,6 +701,7 @@ fun PlayerHost(
                 )
                 
                 // Sleep Timer Button
+                val sleepRemainingMs = viewModel.player.state.collectAsStateWithLifecycle().value.sleepTimerRemainingMs
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -720,15 +722,15 @@ fun PlayerHost(
                             modifier = Modifier.padding(horizontal = 12.dp)
                         ) {
                             androidx.compose.material3.Icon(
-                                imageVector = androidx.compose.material.icons.Icons.Filled.Schedule,
+                                imageVector = Icons.Filled.Schedule,
                                 contentDescription = "Sleep Timer",
                                 tint = androidx.compose.material3.MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.size(20.dp)
                             )
-                            if (state.sleepTimerRemainingMs != null) {
+                            if (sleepRemainingMs != null) {
                                 Spacer(modifier = Modifier.width(6.dp))
-                                val minutes = (state.sleepTimerRemainingMs!! / 60000).toInt()
-                                val seconds = ((state.sleepTimerRemainingMs!! % 60000) / 1000).toInt()
+                                val minutes = (sleepRemainingMs / 60000).toInt()
+                                val seconds = ((sleepRemainingMs % 60000) / 1000).toInt()
                                 androidx.compose.material3.Text(
                                     text = String.format("%02d:%02d", minutes, seconds),
                                     style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
@@ -3783,7 +3785,7 @@ private fun QueuePanel(state: MusicPlayerState, player: MusicPlayer, modifier: M
         val itemTrack = state.queue.getOrNull(index)
         if (itemTrack != null) {
             com.bhavya.music.ui.common.TrackContextMenuSheet(
-                target = com.bhavya.music.ui.common.TrackMenuTarget.Track(itemTrack.title, itemTrack.artist, itemTrack.album),
+                target = com.bhavya.music.ui.common.TrackMenuTarget.Track(itemTrack.title, itemTrack.artist, itemTrack.album.orEmpty()),
                 capabilities = com.bhavya.music.ui.common.TrackMenuCapabilities(showCopyActions = true),
                 playableTrack = itemTrack,
                 onDismiss = { menuIndex = null },

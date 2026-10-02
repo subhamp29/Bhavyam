@@ -43,6 +43,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Delete
@@ -178,7 +179,7 @@ fun PlaylistScreen(
                             onClick = { selectedPlaylists = setOf() },
                             modifier = Modifier.size(40.dp),
                         ) {
-                            Icon(androidx.compose.material.icons.filled.Close, contentDescription = "Clear selection")
+                            Icon(Icons.Filled.Close, contentDescription = "Clear selection")
                         }
                     } else {
                         IconButton(

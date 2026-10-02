@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -298,7 +299,7 @@ fun MainShell(
                         backdrop = navigationBackdrop,
                         tabs = tabs,
                         selectedIndex = currentSelectedIndex,
-                        onSelect = currentOnSelect,
+                        onSelect = { currentOnSelect(it) },
                         onOpenGenerator = currentOnOpenGenerator,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
@@ -399,7 +400,7 @@ private fun FloatingNavBar(
         ) {
             tabs.forEachIndexed { index, tab ->
                 val onClick = remember(index) { { onSelect(index) } }
-                androidx.compose.material3.NavigationBarItem(
+                NavigationBarItem(
                     selected = selectedIndex == index,
                     onClick = onClick,
                     icon = { Icon(tab.icon(), contentDescription = null) },
