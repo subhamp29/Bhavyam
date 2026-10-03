@@ -187,6 +187,22 @@ jobs:
       - name: Grant Gradle execute permission
         run: chmod +x gradlew
 
+      - name: Preflight - release signing material
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD || secrets.RELEASE_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          MISSING=""
+          if [ -z "$SIGNING_KEY" ]; then MISSING="$MISSING SIGNING_KEY"; fi
+          if [ -z "$STORE_PASSWORD" ]; then MISSING="$MISSING KEY_STORE_PASSWORD"; fi
+          if [ -z "$KEY_PASSWORD" ]; then MISSING="$MISSING KEY_PASSWORD"; fi
+          if [ -n "$MISSING" ]; then
+            echo "::error title=Release signing not configured::Missing repository secrets:$MISSING. Without them app/build.gradle.kts falls back to initWith(debug), so the build either dies at :app:validateSigningRelease with 'Keystore file debug.keystore not found' or, worse, succeeds and publishes a debug-signed APK. The in-app updater compares signing certificates and will refuse that APK with INSTALL_FAILED_UPDATE_INCOMPATIBLE, so it must not be published. Add the secrets under Settings -> Secrets and variables -> Actions. Encode the keystore with: base64 -w0 release.jks"
+            exit 1
+          fi
+          echo "Release signing secrets present."
+
       - name: Build Android 10 Release APKs (compressed + raw)
         env:
           ADDON_CLIENT_SECRET: ${{ secrets.ADDON_CLIENT_SECRET }}
