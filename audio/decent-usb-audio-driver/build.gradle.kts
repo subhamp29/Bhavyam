@@ -21,9 +21,13 @@ android {
         }
     }
 
-//     externalNativeBuild {
-//         cmake { path("src/main/jni/CMakeLists.txt") }
-//     }
+    // Builds libdecent_usb_audio.so, which UsbAudioStream's companion-object
+    // init loads via System.loadLibrary(). While this block was commented out
+    // the loadLibrary call had no .so to find and threw UnsatisfiedLinkError on
+    // first use of the class.
+    externalNativeBuild {
+        cmake { path("src/main/jni/CMakeLists.txt") }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
