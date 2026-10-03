@@ -1,10 +1,8 @@
 package com.bhavya.music.ui.settings
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.BubbleChart
@@ -19,7 +17,6 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
@@ -986,55 +983,6 @@ object SettingsSearchIndex {
                     iconTint = { MaterialTheme.colorScheme.onPrimaryContainer },
                     parentTab = SettingsTab.ABOUT,
                     section = "Language",
-                    type = EntryType.ACTION,
-                )
-            )
-            add(
-                SettingsEntry(
-                    id = "about.telegram_support",
-                    title = "Telegram Updates & Support",
-                    subtitle = "Join @bhavya_music on Telegram for app news, beta builds, and support",
-                    keywords = listOf(
-                        "telegram", "support", "community", "chat", "bhavya_music", "help",
-                        "updates channel", "news"
-                    ),
-                    icon = Icons.AutoMirrored.Filled.Send,
-                    iconContainer = { MaterialTheme.colorScheme.primaryContainer },
-                    iconTint = { MaterialTheme.colorScheme.onPrimaryContainer },
-                    parentTab = SettingsTab.ABOUT,
-                    section = "About & Community",
-                    type = EntryType.ACTION,
-                )
-            )
-            add(
-                SettingsEntry(
-                    id = "about.discord_support",
-                    title = "Discord Support",
-                    subtitle = "Join our Discord community server for support and feedback",
-                    keywords = listOf(
-                        "discord", "community", "chat", "support", "feedback", "server", "discussion"
-                    ),
-                    icon = Icons.Filled.Group,
-                    iconContainer = { MaterialTheme.colorScheme.tertiaryContainer },
-                    iconTint = { MaterialTheme.colorScheme.onTertiaryContainer },
-                    parentTab = SettingsTab.ABOUT,
-                    section = "About & Community",
-                    type = EntryType.ACTION,
-                )
-            )
-            add(
-                SettingsEntry(
-                    id = "about.more_apps",
-                    title = "More Apps from Bhavya",
-                    subtitle = "Join @MaterialYouApp on Telegram to discover other applications",
-                    keywords = listOf(
-                        "more apps", "material you app", "other apps", "bhavya apps", "developer"
-                    ),
-                    icon = Icons.Filled.AutoAwesome,
-                    iconContainer = { MaterialTheme.colorScheme.primaryContainer },
-                    iconTint = { MaterialTheme.colorScheme.onPrimaryContainer },
-                    parentTab = SettingsTab.ABOUT,
-                    section = "About & Community",
                     type = EntryType.ACTION,
                 )
             )

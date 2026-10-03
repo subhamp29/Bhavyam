@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya 播放器</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam 播放器</string>
     <string name="widget_description">所有媒体应用的封面、曲目信息和播放控制</string>
 
     <!-- 底部导航 -->
@@ -12,7 +12,7 @@
     <string name="update_available">有可用更新</string>
     <string name="update">更新</string>
     <string name="dismiss_update">忽略更新</string>
-    <string name="update_ready_to_install">Bhavya v%1$s 已就绪，可安装</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s 已就绪，可安装</string>
 
     <!-- 设置 -->
     <string name="settings">设置</string>
@@ -94,8 +94,6 @@
     <string name="settings_restore_sub">加载备份或歌单 JSON</string>
 
     <string name="settings_section_about">关于</string>
-    <string name="settings_updates_support">更新与支持</string>
-    <string name="settings_more_from_us">我们的更多作品</string>
     <string name="settings_diagnostics">导出诊断日志</string>
     <string name="settings_diagnostics_sub">分享日志以排查问题</string>
     <string name="settings_check_updates">检查更新</string>
@@ -119,7 +117,7 @@
     <string name="dialog_clear_all_text">这将删除您的凭据、歌单和缓存数据，且无法撤销。</string>
     <string name="dialog_clear_all_confirm">全部清除</string>
     <string name="dialog_disconnect_yt_title">断开 YouTube Music？</string>
-    <string name="dialog_disconnect_yt_text">已同步到您账号的歌单会保留，但 Bhavya 将停止同步并忘记该连接。</string>
+    <string name="dialog_disconnect_yt_text">已同步到您账号的歌单会保留，但 Bhavyam 将停止同步并忘记该连接。</string>
     <string name="dialog_logout_title">退出 Last.fm？</string>
     <string name="dialog_logout_text">您的歌单和缓存数据将被保留。</string>
     <string name="common_save">保存</string>

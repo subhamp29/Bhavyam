@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya 플레이어</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam 플레이어</string>
     <string name="widget_description">모든 미디어 앱의 앨범아트, 곡 정보 및 재생 컨트롤</string>
 
     <string name="nav_feed">피드</string>
@@ -11,7 +11,7 @@
     <string name="update_available">업데이트 있음</string>
     <string name="update">업데이트</string>
     <string name="dismiss_update">업데이트 닫기</string>
-    <string name="update_ready_to_install">Bhavya v%1$s를 설치할 수 있습니다</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s를 설치할 수 있습니다</string>
 
     <string name="settings">설정</string>
     <string name="settings_section_language">언어</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">백업 또는 플레이리스트 JSON 불러오기</string>
 
     <string name="settings_section_about">정보</string>
-    <string name="settings_updates_support">업데이트 및 지원</string>
-    <string name="settings_more_from_us">개발자의 다른 앱</string>
     <string name="settings_diagnostics">진단 내보내기</string>
     <string name="settings_diagnostics_sub">문제 해결을 위해 로그 공유</string>
     <string name="settings_check_updates">업데이트 확인</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">로그인 정보, 플레이리스트, 캐시 데이터가 삭제됩니다. 되돌릴 수 없습니다.</string>
     <string name="dialog_clear_all_confirm">모두 지우기</string>
     <string name="dialog_disconnect_yt_title">YouTube Music 연결을 해제할까요?</string>
-    <string name="dialog_disconnect_yt_text">계정에 미러링된 플레이리스트는 유지되지만 Bhavya는 동기화를 중단하고 연결을 삭제합니다.</string>
+    <string name="dialog_disconnect_yt_text">계정에 미러링된 플레이리스트는 유지되지만 Bhavyam는 동기화를 중단하고 연결을 삭제합니다.</string>
     <string name="dialog_logout_title">Last.fm에서 로그아웃할까요?</string>
     <string name="dialog_logout_text">플레이리스트와 캐시 데이터는 유지됩니다.</string>
     <string name="common_save">저장</string>

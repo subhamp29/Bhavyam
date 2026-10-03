@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">مشغّل Bhavya</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">مشغّل Bhavyam</string>
     <string name="widget_description">الغلاف وتفاصيل المقطوعة وعناصر التحكم بالتشغيل لجميع تطبيقات الوسائط</string>
 
     <string name="nav_feed">الموجز</string>
@@ -11,7 +11,7 @@
     <string name="update_available">يتوفر تحديث</string>
     <string name="update">تحديث</string>
     <string name="dismiss_update">إغلاق التحديث</string>
-    <string name="update_ready_to_install">Bhavya v%1$s جاهز للتثبيت</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s جاهز للتثبيت</string>
 
     <string name="settings">الإعدادات</string>
     <string name="settings_section_language">اللغة</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">تحميل نسخة أو JSON لقائمة</string>
 
     <string name="settings_section_about">حول</string>
-    <string name="settings_updates_support">التحديثات والدعم</string>
-    <string name="settings_more_from_us">المزيد منا</string>
     <string name="settings_diagnostics">تصدير التشخيص</string>
     <string name="settings_diagnostics_sub">مشاركة السجلات لاستكشاف الأخطاء</string>
     <string name="settings_check_updates">التحقق من التحديثات</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">سيؤدي هذا إلى إزالة بيانات الاعتماد والقوائم والبيانات المخزنة. لا يمكن التراجع.</string>
     <string name="dialog_clear_all_confirm">مسح الكل</string>
     <string name="dialog_disconnect_yt_title">قطع اتصال YouTube Music؟</string>
-    <string name="dialog_disconnect_yt_text">القوائم المنعكسة في حسابك تبقى، لكن Bhavya يتوقف عن المزامنة وينسى الاتصال.</string>
+    <string name="dialog_disconnect_yt_text">القوائم المنعكسة في حسابك تبقى، لكن Bhavyam يتوقف عن المزامنة وينسى الاتصال.</string>
     <string name="dialog_logout_title">تسجيل الخروج من Last.fm؟</string>
     <string name="dialog_logout_text">ستبقى قوائمك وبياناتك المخزنة.</string>
     <string name="common_save">حفظ</string>

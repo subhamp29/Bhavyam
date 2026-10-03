@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya Player</string>
+    <string name="app_name">Bhavyamm</string>
+    <string name="widget_name">Bhavyamm Player</string>
     <string name="widget_description">Artwork, track details and playback controls for every media app</string>
-    <string name="widget_obsidian_name">Bhavya Obsidian Glass</string>
+    <string name="widget_obsidian_name">Bhavyamm Obsidian Glass</string>
     <string name="widget_obsidian_description">Frosted obsidian glass player with translucent depth and crystal rim</string>
 
     <!-- Bottom navigation -->
@@ -14,7 +14,7 @@
     <string name="update_available">Update Available</string>
     <string name="update">Update</string>
     <string name="dismiss_update">Dismiss update</string>
-    <string name="update_ready_to_install">Bhavya v%1$s is ready to install</string>
+    <string name="update_ready_to_install">Bhavyamm v%1$s is ready to install</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -125,8 +125,6 @@
     <string name="settings_restore_sub">Load a backup or playlist JSON</string>
 
     <string name="settings_section_about">About</string>
-    <string name="settings_updates_support">Updates &amp; Support</string>
-    <string name="settings_more_from_us">More From Us</string>
     <string name="settings_diagnostics">Export diagnostics</string>
     <string name="settings_diagnostics_sub">Share logs for troubleshooting</string>
     <string name="settings_check_updates">Check for Updates</string>
@@ -318,7 +316,7 @@
     <string name="dialog_clear_all_text">This removes your credentials, playlists, downloaded songs, and cached data. This can\'t be undone.</string>
     <string name="dialog_clear_all_confirm">Clear Everything</string>
     <string name="dialog_disconnect_yt_title">Disconnect YouTube Music?</string>
-    <string name="dialog_disconnect_yt_text">Playlists already mirrored to your account stay there, but Bhavya stops syncing and forgets the connection.</string>
+    <string name="dialog_disconnect_yt_text">Playlists already mirrored to your account stay there, but Bhavyamm stops syncing and forgets the connection.</string>
     <string name="dialog_logout_title">Log out from Last.fm?</string>
     <string name="dialog_logout_text">Your playlists and cached data will be kept.</string>
 

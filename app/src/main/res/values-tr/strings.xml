@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya Oynatıcı</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam Oynatıcı</string>
     <string name="widget_description">Tüm medya uygulamaları için kapak, parça bilgisi ve oynatma kontrolleri</string>
 
     <!-- Alt gezinti -->
@@ -12,7 +12,7 @@
     <string name="update_available">Güncelleme Mevcut</string>
     <string name="update">Güncelle</string>
     <string name="dismiss_update">Güncellemeyi kapat</string>
-    <string name="update_ready_to_install">Bhavya v%1$s kurulmaya hazır</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s kurulmaya hazır</string>
 
     <!-- Ayarlar -->
     <string name="settings">Ayarlar</string>
@@ -94,8 +94,6 @@
     <string name="settings_restore_sub">Yedek veya liste JSON\'u yükleyin</string>
 
     <string name="settings_section_about">Hakkında</string>
-    <string name="settings_updates_support">Güncellemeler ve Destek</string>
-    <string name="settings_more_from_us">Bizden Daha Fazlası</string>
     <string name="settings_diagnostics">Tanılama verisini dışa aktar</string>
     <string name="settings_diagnostics_sub">Sorun giderme için günlükleri paylaşın</string>
     <string name="settings_check_updates">Güncellemeleri Denetle</string>
@@ -119,7 +117,7 @@
     <string name="dialog_clear_all_text">Kimlik bilgileriniz, listeleriniz ve önbelleğe alınmış veriler kaldırılır. Bu işlem geri alınamaz.</string>
     <string name="dialog_clear_all_confirm">Her Şeyi Temizle</string>
     <string name="dialog_disconnect_yt_title">YouTube Music bağlantısı kesilsin mi?</string>
-    <string name="dialog_disconnect_yt_text">Hesabınıza yansıtılan listeler orada kalır, ancak Bhavya eşitlemeyi durdurur ve bağlantıyı unutur.</string>
+    <string name="dialog_disconnect_yt_text">Hesabınıza yansıtılan listeler orada kalır, ancak Bhavyam eşitlemeyi durdurur ve bağlantıyı unutur.</string>
     <string name="dialog_logout_title">Last.fm\'den çıkış yapılsın mı?</string>
     <string name="dialog_logout_text">Listeleriniz ve önbelleğe alınmış verileriniz korunur.</string>
     <string name="common_save">Kaydet</string>

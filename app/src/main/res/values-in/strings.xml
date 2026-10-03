@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Pemutar Bhavya</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Pemutar Bhavyam</string>
     <string name="widget_description">Sampul, detail lagu, dan kontrol pemutaran untuk semua aplikasi media</string>
 
     <string name="nav_feed">Beranda</string>
@@ -11,7 +11,7 @@
     <string name="update_available">Pembaruan tersedia</string>
     <string name="update">Perbarui</string>
     <string name="dismiss_update">Abaikan pembaruan</string>
-    <string name="update_ready_to_install">Bhavya v%1$s siap dipasang</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s siap dipasang</string>
 
     <string name="settings">Pengaturan</string>
     <string name="settings_section_language">Bahasa</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">Muat cadangan atau JSON playlist</string>
 
     <string name="settings_section_about">Tentang</string>
-    <string name="settings_updates_support">Pembaruan &amp; Dukungan</string>
-    <string name="settings_more_from_us">Lainnya dari kami</string>
     <string name="settings_diagnostics">Ekspor diagnostik</string>
     <string name="settings_diagnostics_sub">Bagikan log untuk pemecahan masalah</string>
     <string name="settings_check_updates">Periksa pembaruan</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">Ini menghapus kredensial, playlist, dan data cache. Tidak dapat dibatalkan.</string>
     <string name="dialog_clear_all_confirm">Hapus semua</string>
     <string name="dialog_disconnect_yt_title">Putuskan YouTube Music?</string>
-    <string name="dialog_disconnect_yt_text">Playlist yang sudah dicerminkan ke akun tetap ada, tetapi Bhavya berhenti menyinkronkan dan melupakan koneksi.</string>
+    <string name="dialog_disconnect_yt_text">Playlist yang sudah dicerminkan ke akun tetap ada, tetapi Bhavyam berhenti menyinkronkan dan melupakan koneksi.</string>
     <string name="dialog_logout_title">Keluar dari Last.fm?</string>
     <string name="dialog_logout_text">Playlist dan data cache Anda tetap disimpan.</string>
     <string name="common_save">Simpan</string>

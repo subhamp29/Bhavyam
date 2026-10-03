@@ -14,10 +14,7 @@ Security fixes are provided for the latest stable release of Bhavya.
 If you discover a security vulnerability in Bhavya, please report it privately rather than creating a public issue.
 
 ### How to Report
-* Reach out privately to the maintainers on Telegram:
-  * Channel: https://t.me/bhavya_music
-  * Discussion Group: https://t.me/bhavya_music
-* Alternatively, submit a private security advisory through the GitHub repository.
+* Submit a private security advisory through the GitHub repository.
 * Include:
   * Description of the vulnerability
   * Affected versions and components

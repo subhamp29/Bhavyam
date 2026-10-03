@@ -1,11 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Telegram Community & Discussion
-    url: https://t.me/bhavya_music
-    about: Ask questions, share feedback, or discuss features with the community.
-  - name: Telegram Channel
-    url: https://t.me/bhavya_music
-    about: Official announcements and updates for Bhavya.
   - name: GitHub Discussions
     url: https://github.com/subhamp29/Bhavyam/discussions
-    about: Discuss development and project roadmap.
+    about: Ask questions, share feedback, or discuss features and the project roadmap.

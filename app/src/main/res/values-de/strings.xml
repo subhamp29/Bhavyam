@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya Player</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam Player</string>
     <string name="widget_description">Cover, Trackdetails und Wiedergabesteuerung für alle Medien-Apps</string>
 
     <string name="nav_feed">Feed</string>
@@ -11,7 +11,7 @@
     <string name="update_available">Update verfügbar</string>
     <string name="update">Aktualisieren</string>
     <string name="dismiss_update">Update verwerfen</string>
-    <string name="update_ready_to_install">Bhavya v%1$s ist bereit zur Installation</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s ist bereit zur Installation</string>
 
     <string name="settings">Einstellungen</string>
     <string name="settings_section_language">Sprache</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">Backup oder Playlist-JSON laden</string>
 
     <string name="settings_section_about">Über</string>
-    <string name="settings_updates_support">Updates &amp; Support</string>
-    <string name="settings_more_from_us">Mehr von uns</string>
     <string name="settings_diagnostics">Diagnose exportieren</string>
     <string name="settings_diagnostics_sub">Logs zur Fehlerbehebung teilen</string>
     <string name="settings_check_updates">Nach Updates suchen</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">Entfernt Anmeldedaten, Playlists und Cache. Kann nicht rückgängig gemacht werden.</string>
     <string name="dialog_clear_all_confirm">Alles löschen</string>
     <string name="dialog_disconnect_yt_title">YouTube Music trennen?</string>
-    <string name="dialog_disconnect_yt_text">Bereits gespiegelte Playlists bleiben im Konto, aber Bhavya stoppt den Sync und vergisst die Verbindung.</string>
+    <string name="dialog_disconnect_yt_text">Bereits gespiegelte Playlists bleiben im Konto, aber Bhavyam stoppt den Sync und vergisst die Verbindung.</string>
     <string name="dialog_logout_title">Von Last.fm abmelden?</string>
     <string name="dialog_logout_text">Playlists und Cache bleiben erhalten.</string>
     <string name="common_save">Speichern</string>

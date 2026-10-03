@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya प्लेयर</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam प्लेयर</string>
     <string name="widget_description">सभी मीडिया ऐप्स के लिए कवर, गाने की जानकारी और प्लेबैक नियंत्रण</string>
 
     <string name="nav_feed">फ़ीड</string>
@@ -11,7 +11,7 @@
     <string name="update_available">अपडेट उपलब्ध</string>
     <string name="update">अपडेट करें</string>
     <string name="dismiss_update">अपडेट हटाएँ</string>
-    <string name="update_ready_to_install">Bhavya v%1$s इंस्टॉल के लिए तैयार</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s इंस्टॉल के लिए तैयार</string>
 
     <string name="settings">सेटिंग्स</string>
     <string name="settings_section_language">भाषा</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">बैकअप या प्लेलिस्ट JSON लोड करें</string>
 
     <string name="settings_section_about">परिचय</string>
-    <string name="settings_updates_support">अपडेट व सहायता</string>
-    <string name="settings_more_from_us">हमारी ओर से और</string>
     <string name="settings_diagnostics">डायग्नोस्टिक्स निर्यात करें</string>
     <string name="settings_diagnostics_sub">समस्या-निवारण हेतु लॉग साझा करें</string>
     <string name="settings_check_updates">अपडेट जाँचें</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">इससे क्रेडेंशियल, प्लेलिस्ट और कैश डेटा हट जाएगा। पूर्ववत नहीं होगा।</string>
     <string name="dialog_clear_all_confirm">सब मिटाएँ</string>
     <string name="dialog_disconnect_yt_title">YouTube Music डिस्कनेक्ट करें?</string>
-    <string name="dialog_disconnect_yt_text">खाते में प्रतिबिंबित प्लेलिस्ट वहीं रहेंगी, पर Bhavya सिंक बंद कर देगा और कनेक्शन भूल जाएगा।</string>
+    <string name="dialog_disconnect_yt_text">खाते में प्रतिबिंबित प्लेलिस्ट वहीं रहेंगी, पर Bhavyam सिंक बंद कर देगा और कनेक्शन भूल जाएगा।</string>
     <string name="dialog_logout_title">Last.fm से लॉग आउट करें?</string>
     <string name="dialog_logout_text">आपकी प्लेलिस्ट और कैश डेटा रखा जाएगा।</string>
     <string name="common_save">सहेजें</string>

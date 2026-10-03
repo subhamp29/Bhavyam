@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya プレーヤー</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam プレーヤー</string>
     <string name="widget_description">すべてのメディアアプリのジャケット、曲情報、再生コントロール</string>
 
     <string name="nav_feed">フィード</string>
@@ -11,7 +11,7 @@
     <string name="update_available">アップデートあり</string>
     <string name="update">更新</string>
     <string name="dismiss_update">アップデートを閉じる</string>
-    <string name="update_ready_to_install">Bhavya v%1$s をインストールできます</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s をインストールできます</string>
 
     <string name="settings">設定</string>
     <string name="settings_section_language">言語</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">バックアップまたはプレイリスト JSON を読み込む</string>
 
     <string name="settings_section_about">このアプリについて</string>
-    <string name="settings_updates_support">アップデートとサポート</string>
-    <string name="settings_more_from_us">開発者の他のアプリ</string>
     <string name="settings_diagnostics">診断情報をエクスポート</string>
     <string name="settings_diagnostics_sub">トラブルシューティング用にログを共有</string>
     <string name="settings_check_updates">アップデートを確認</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">認証情報、プレイリスト、キャッシュデータが削除されます。元に戻せません。</string>
     <string name="dialog_clear_all_confirm">すべて消去</string>
     <string name="dialog_disconnect_yt_title">YouTube Music を切断しますか?</string>
-    <string name="dialog_disconnect_yt_text">アカウントにミラー済みのプレイリストは残りますが、Bhavya は同期を停止し接続を忘れます。</string>
+    <string name="dialog_disconnect_yt_text">アカウントにミラー済みのプレイリストは残りますが、Bhavyam は同期を停止し接続を忘れます。</string>
     <string name="dialog_logout_title">Last.fm からログアウトしますか?</string>
     <string name="dialog_logout_text">プレイリストとキャッシュデータは保持されます。</string>
     <string name="common_save">保存</string>

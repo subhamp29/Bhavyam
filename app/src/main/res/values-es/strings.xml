@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Reproductor Bhavya</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Reproductor Bhavyam</string>
     <string name="widget_description">Portada, detalles de la canción y controles de reproducción para todas las apps de música</string>
 
     <string name="nav_feed">Inicio</string>
@@ -11,7 +11,7 @@
     <string name="update_available">Actualización disponible</string>
     <string name="update">Actualizar</string>
     <string name="dismiss_update">Descartar actualización</string>
-    <string name="update_ready_to_install">Bhavya v%1$s lista para instalar</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s lista para instalar</string>
 
     <string name="settings">Ajustes</string>
     <string name="settings_section_language">Idioma</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">Carga una copia o un JSON de lista</string>
 
     <string name="settings_section_about">Acerca de</string>
-    <string name="settings_updates_support">Actualizaciones y soporte</string>
-    <string name="settings_more_from_us">Más de nosotros</string>
     <string name="settings_diagnostics">Exportar diagnóstico</string>
     <string name="settings_diagnostics_sub">Comparte registros para solucionar problemas</string>
     <string name="settings_check_updates">Buscar actualizaciones</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">Esto elimina tus credenciales, listas y datos en caché. No se puede deshacer.</string>
     <string name="dialog_clear_all_confirm">Borrar todo</string>
     <string name="dialog_disconnect_yt_title">¿Desconectar YouTube Music?</string>
-    <string name="dialog_disconnect_yt_text">Las listas ya reflejadas en tu cuenta se conservan, pero Bhavya deja de sincronizar y olvida la conexión.</string>
+    <string name="dialog_disconnect_yt_text">Las listas ya reflejadas en tu cuenta se conservan, pero Bhavyam deja de sincronizar y olvida la conexión.</string>
     <string name="dialog_logout_title">¿Cerrar sesión de Last.fm?</string>
     <string name="dialog_logout_text">Tus listas y datos en caché se conservarán.</string>
     <string name="common_save">Guardar</string>

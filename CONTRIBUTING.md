@@ -22,8 +22,7 @@ cd Bhavyam
 
 ### Community & Questions
 For real-time development discussion and support:
-* Telegram Channel: https://t.me/bhavya_music
-* Discussion Group: https://t.me/bhavya_music
+* GitHub Discussions: https://github.com/subhamp29/Bhavyam/discussions
 
 ### Local Configuration
 Copy `.env.example` to `.env` to supply build-time environment properties:

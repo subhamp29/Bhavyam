@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bhavya</string>
-    <string name="widget_name">Bhavya Плеер</string>
+    <string name="app_name">Bhavyam</string>
+    <string name="widget_name">Bhavyam Плеер</string>
     <string name="widget_description">Обложка, информация о треке и управление воспроизведением для всех медиаприложений</string>
 
     <string name="nav_feed">Лента</string>
@@ -11,7 +11,7 @@
     <string name="update_available">Доступно обновление</string>
     <string name="update">Обновить</string>
     <string name="dismiss_update">Скрыть обновление</string>
-    <string name="update_ready_to_install">Bhavya v%1$s готова к установке</string>
+    <string name="update_ready_to_install">Bhavyam v%1$s готова к установке</string>
 
     <string name="settings">Настройки</string>
     <string name="settings_section_language">Язык</string>
@@ -92,8 +92,6 @@
     <string name="settings_restore_sub">Загрузить копию или JSON плейлиста</string>
 
     <string name="settings_section_about">О приложении</string>
-    <string name="settings_updates_support">Обновления и поддержка</string>
-    <string name="settings_more_from_us">Больше от нас</string>
     <string name="settings_diagnostics">Экспорт диагностики</string>
     <string name="settings_diagnostics_sub">Поделиться журналами для решения проблем</string>
     <string name="settings_check_updates">Проверить обновления</string>
@@ -116,7 +114,7 @@
     <string name="dialog_clear_all_text">Это удалит ваши учётные данные, плейлисты и кэшированные данные. Действие необратимо.</string>
     <string name="dialog_clear_all_confirm">Удалить всё</string>
     <string name="dialog_disconnect_yt_title">Отключить YouTube Music?</string>
-    <string name="dialog_disconnect_yt_text">Плейлисты, уже отражённые в вашем аккаунте, останутся, но Bhavya прекратит синхронизацию и забудет подключение.</string>
+    <string name="dialog_disconnect_yt_text">Плейлисты, уже отражённые в вашем аккаунте, останутся, но Bhavyam прекратит синхронизацию и забудет подключение.</string>
     <string name="dialog_logout_title">Выйти из Last.fm?</string>
     <string name="dialog_logout_text">Ваши плейлисты и кэшированные данные сохранятся.</string>
     <string name="common_save">Сохранить</string>

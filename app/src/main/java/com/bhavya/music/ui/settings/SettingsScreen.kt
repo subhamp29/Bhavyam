@@ -80,7 +80,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
@@ -99,7 +98,6 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BubbleChart
 import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -1685,62 +1683,17 @@ fun SettingsScreen(
                         item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SectionLabel(stringResource(R.string.settings_section_about))
-                    SettingsGroup(rowCount = 4) { index, position ->
-                        when (index) {
-                            0 -> SettingsActionCard(
-                                icon = Icons.AutoMirrored.Filled.Send,
-                                iconContainer = MaterialTheme.colorScheme.primaryContainer,
-                                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                title = stringResource(R.string.settings_updates_support),
-                                subtitle = "Join @bhavya_music on Telegram",
-                                onClick = {
-                                    if (!openTelegramChannel(context, "bhavya_music")) {
-                                        viewModel.showToast("No compatible browser or Telegram app is available")
-                                    }
-                                },
-                                position = position,
-                                isHighlighted = (highlightedSettingId == "about.telegram_support"),
-                            )
-                            1 -> SettingsActionCard(
-                                icon = Icons.Filled.Group,
-                                iconContainer = MaterialTheme.colorScheme.tertiaryContainer,
-                                iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                title = "Discord Support",
-                                subtitle = "Join our Discord community",
-                                onClick = {
-                                    val discordIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/TMCEPSUNk2"))
-                                    if (!startActivitySafely(context, discordIntent)) {
-                                        viewModel.showToast("No compatible browser is available")
-                                    }
-                                },
-                                position = position,
-                                isHighlighted = (highlightedSettingId == "about.discord_support"),
-                            )
-                            2 -> SettingsActionCard(
-                                icon = Icons.Filled.AutoAwesome,
-                                iconContainer = MaterialTheme.colorScheme.primaryContainer,
-                                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                title = stringResource(R.string.settings_more_from_us),
-                                subtitle = "Join @MaterialYouApp on Telegram",
-                                onClick = {
-                                    if (!openTelegramChannel(context, "MaterialYouApp")) {
-                                        viewModel.showToast("No compatible browser or Telegram app is available")
-                                    }
-                                },
-                                position = position,
-                                isHighlighted = (highlightedSettingId == "about.more_apps"),
-                            )
-                            3 -> SettingsActionCard(
-                                icon = Icons.Filled.Code,
-                                iconContainer = MaterialTheme.colorScheme.secondaryContainer,
-                                iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                title = stringResource(R.string.settings_diagnostics),
-                                subtitle = stringResource(R.string.settings_diagnostics_sub),
-                                onClick = { viewModel.exportDiagnostics() },
-                                position = position,
-                                isHighlighted = (highlightedSettingId == "about.diagnostics"),
-                            )
-                        }
+                    SettingsGroup(rowCount = 1) { _, position ->
+                        SettingsActionCard(
+                            icon = Icons.Filled.Code,
+                            iconContainer = MaterialTheme.colorScheme.secondaryContainer,
+                            iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            title = stringResource(R.string.settings_diagnostics),
+                            subtitle = stringResource(R.string.settings_diagnostics_sub),
+                            onClick = { viewModel.exportDiagnostics() },
+                            position = position,
+                            isHighlighted = (highlightedSettingId == "about.diagnostics"),
+                        )
                     }
                     Spacer(Modifier.height(4.dp))
 
@@ -3661,22 +3614,6 @@ private fun AboutCard(versionName: String) {
             )
         }
     }
-}
-
-private fun openTelegramChannel(context: android.content.Context, handleOrUrl: String): Boolean {
-    val username = handleOrUrl
-        .removePrefix("https://t.me/")
-        .removePrefix("http://t.me/")
-        .removePrefix("@")
-        .trim()
-    val tgIntent = Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=$username")).apply {
-        setPackage("org.telegram.messenger")
-    }
-    val genericTgIntent = Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=$username"))
-    val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/$username"))
-    return startActivitySafely(context, tgIntent) ||
-        startActivitySafely(context, genericTgIntent) ||
-        startActivitySafely(context, webIntent)
 }
 
 /** OEM Settings/browser components are optional and occasionally broken on
