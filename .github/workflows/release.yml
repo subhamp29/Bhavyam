@@ -1,25 +1,33 @@
 name: Publish Selected Release
 
 on:
+  # Normal path: bump versionName/versionCode, commit, tag, push. The tag push
+  # builds and publishes on its own, so a release is never a manual step.
+  push:
+    tags:
+      - 'v*'
+  # Escape hatch for re-publishing an existing tag with custom notes, or for
+  # recovering a release that failed to publish.
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Git Tag (e.g., 4.2.2)'
+        description: 'Git Tag (e.g., 1.1)'
         required: true
-        default: '4.2.2'
+        default: '1.1'
       release_name:
-        description: 'Release Title (e.g., Bhavyam 4.2.2)'
-        required: true
-        default: 'Update v4.2.2'
+        description: 'Release Title (e.g., Bhavyam 1.1)'
+        required: false
+        default: ''
       release_notes:
         description: 'Changelog / Release Notes'
         required: false
         default: ''
 
 # A re-dispatch of the same tag must not race itself: two concurrent runs would
-# build and upload the same assets to the same release.
+# build and upload the same assets to the same release. github.ref_name covers
+# the tag-push trigger, where inputs.tag_name is empty.
 concurrency:
-  group: release-${{ inputs.tag_name }}
+  group: release-${{ inputs.tag_name || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -42,7 +50,8 @@ jobs:
       version_code: ${{ steps.check.outputs.version_code }}
       previous_tag: ${{ steps.check.outputs.previous_tag }}
     env:
-      REQUESTED_TAG: ${{ inputs.tag_name }}
+      # Empty on the tag-push trigger, where the ref already names the tag.
+      REQUESTED_TAG: ${{ inputs.tag_name || github.ref_name }}
 
     steps:
       # fetch-depth 0 pulls every branch and every tag, so the release tag can be
@@ -52,8 +61,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # The dispatch input defaults to the bare "4.2.2" while the repository tag
-      # is "v4.2.2", so accept either spelling and pin the release to a commit SHA.
+      # The tag may be spelled either "1.1" or "v1.1" (a manual dispatch lets the
+      # user type the bare version), so accept either and pin to a commit SHA.
       - name: Resolve release tag to a commit SHA
         id: resolve
         run: |
@@ -319,8 +328,10 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag_name }}
-          name: ${{ inputs.release_name }}
+          # inputs.* is empty on the tag-push trigger; the verify job resolved the
+          # tag from the ref, so publish against that.
+          tag_name: ${{ inputs.tag_name || needs.verify.outputs.tag }}
+          name: ${{ inputs.release_name || format('Bhavyam {0}', needs.verify.outputs.version_name) }}
           body_path: release_body.md
           files: |
             final_apk/*.apk
