@@ -9,4 +9,11 @@
          four bars in the official logo. Used as the adaptive icon's
          background layer, paired with ic_launcher_foreground for the bars. -->
     <color name="ic_launcher_background">#FFC9FB00</color>
+
+    <!-- Adaptive icon background LAYER (separate from the colour above, which
+         SettingsScreen also uses as a UI accent). The shipped launcher artwork
+         is a mark on black, so the layer is black: compositing the foreground
+         over it reproduces exactly what users saw before the layer split.
+         Kept as its own colour so the lime stays available to the UI. -->
+    <color name="ic_launcher_adaptive_bg">#FF000000</color>
 </resources>
