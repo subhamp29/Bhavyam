@@ -16,6 +16,16 @@ find_package(oboe REQUIRED CONFIG)
 
 # libsoxr 0.1.3 is pinned for reproducible HQ sinc resampling. It is built as
 # a separate LGPL shared library rather than statically folded into the app.
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_LSR_TESTS OFF CACHE BOOL "" FORCE)
+set(WITH_LSR_BINDINGS OFF CACHE BOOL "" FORCE)
+set(WITH_OPENMP OFF CACHE BOOL "" FORCE)
+set(WITH_CR32S OFF CACHE BOOL "" FORCE)
+set(WITH_CR64S OFF CACHE BOOL "" FORCE)
+set(WITH_PFFFT OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+
 include(FetchContent)
 FetchContent_Declare(
     soxr_source
@@ -25,16 +35,12 @@ FetchContent_Declare(
 FetchContent_GetProperties(soxr_source)
 if(NOT soxr_source_POPULATED)
     FetchContent_Populate(soxr_source)
+    file(READ "${soxr_source_SOURCE_DIR}/CMakeLists.txt" SOXR_CMAKE)
+    string(REPLACE "EXISTS \${PROJECT_SOURCE_DIR}/lsr-tests" "FALSE" SOXR_CMAKE "${SOXR_CMAKE}")
+    string(REPLACE "EXISTS \${soxr_SOURCE_DIR}/lsr-tests" "FALSE" SOXR_CMAKE "${SOXR_CMAKE}")
+    file(WRITE "${soxr_source_SOURCE_DIR}/CMakeLists.txt" "${SOXR_CMAKE}")
+
     list(APPEND CMAKE_MODULE_PATH "${soxr_source_SOURCE_DIR}/cmake/Modules")
-    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(BUILD_LSR_TESTS OFF CACHE BOOL "" FORCE)
-    set(WITH_LSR_BINDINGS OFF CACHE BOOL "" FORCE)
-    set(WITH_OPENMP OFF CACHE BOOL "" FORCE)
-    set(WITH_CR32S OFF CACHE BOOL "" FORCE)
-    set(WITH_CR64S OFF CACHE BOOL "" FORCE)
-    set(WITH_PFFFT OFF CACHE BOOL "" FORCE)
-    set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
     add_subdirectory("${soxr_source_SOURCE_DIR}" "${soxr_source_BINARY_DIR}" EXCLUDE_FROM_ALL)
     # Android APKs need an unversioned DT_SONAME/file name for reliable
     # packaging and namespace loading of transitive native dependencies.

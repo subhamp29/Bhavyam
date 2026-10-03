@@ -132,7 +132,7 @@ android {
             initWith(getByName("release"))
             isMinifyEnabled = false
             isShrinkResources = false
-            // Raw variant — no code/resource shrinking, no ProGuard/R8
+            // Raw variant -- no code/resource shrinking, no ProGuard/R8
             signingConfig = signingConfigs.getByName("release_config")
             // proguardFiles from initWith are ignored when minify is off
         }
@@ -192,7 +192,7 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.androidx.palette)
 
-    // Home-screen "Now Playing" widget (Glance — Compose-style APIs over
+    // Home-screen "Now Playing" widget (Glance -- Compose-style APIs over
     // RemoteViews), driven by the same MediaController access the local
     // scrobbler (MediaScrobbleListenerService) already holds.
     implementation("androidx.glance:glance-appwidget:1.1.1")
@@ -238,7 +238,7 @@ dependencies {
     implementation(libs.lyrics.core)
     // Installs the baseline profiles bundled inside Compose (and other
     // androidx) AARs so hot UI paths are AOT-compiled on device instead of
-    // running through JIT on first use — a large, zero-code smoothness win
+    // running through JIT on first use -- a large, zero-code smoothness win
     // for scrolling and animations in release builds.
     implementation(libs.androidx.profileinstaller)
 
@@ -308,14 +308,95 @@ tasks.withType<Test> {
 
 // Generate native secrets header before CMake configures.
 // CI provides ADDON_CLIENT_SECRET / RELEASE_CERT_SHA256 via env/secrets.
-val generateNativeSecrets by tasks.registering(Exec::class) {
-    workingDir = rootProject.projectDir
-    val py = org.gradle.internal.os.OperatingSystem.current().let {
-        if (it.isWindows) "python" else "python3"
+val nativeSecretsPlaceholder = """
+    |// AUTO-GENERATED PLACEHOLDER -- NOT FOR PRODUCTION, local dev build only.
+    |// This file is gitignored. CI generates the real version via tools/generate_native_secrets.py.
+    |// This stub mirrors the #else fallback in SecretsBridge.cpp.
+    |#pragma once
+    |#include <cstdint>
+    |#include <cstddef>
+    |
+    |constexpr char EXPECTED_CERT_PREFIX[] = "PLACEHOLDER_REPLACE_WITH_YOUR_CERT_SHA256";
+    |
+    |static const uint8_t CLIENT_SECRET_SALT[16] = {0};
+    |static constexpr size_t CLIENT_SECRET_TOTAL_LEN = 0;
+    |static constexpr int CLIENT_SECRET_FRAGMENT_COUNT = 0;
+    |
+    |struct Fragment {
+    |    const uint8_t* data;
+    |    uint8_t        len;
+    |    uint8_t        mask;
+    |};
+    |
+    |static const Fragment CLIENT_SECRET_FRAGMENTS[] = {};
+    |
+""".trimMargin()
+
+val generateNativeSecrets by tasks.registering {
+    group = "build"
+    description = "Generates the native addon-lock secrets header consumed by SecretsBridge.cpp."
+
+    val headerFile = layout.projectDirectory.file("src/main/cpp/SecretsBridge_generated.h").asFile
+    val rootDir = rootProject.projectDir
+    val scriptFile = rootProject.file("tools/generate_native_secrets.py")
+    val dotEnvFile = rootProject.file(".env")
+    val placeholder = nativeSecretsPlaceholder
+    val interpreters =
+        if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
+            listOf("python", "python3", "py")
+        } else {
+            listOf("python3", "python")
+        }
+
+    inputs.file(scriptFile)
+    inputs.file(dotEnvFile).optional()
+    outputs.file(headerFile)
+
+    doLast {
+        // A header is already present (generated here or by a previous run):
+        // leave it alone so a build never destroys a real keystore-bound secret.
+        if (headerFile.isFile && headerFile.length() > 0L) {
+            logger.lifecycle("generateNativeSecrets: reusing existing ${headerFile.name}")
+            return@doLast
+        }
+
+        // No Python on the host is the common case on developer machines, and a
+        // failed *spawn* is not covered by isIgnoreExitValue -- it aborts the whole
+        // build. Probe each interpreter and fall back to the inert stub instead.
+        var generated = false
+        for (interpreter in interpreters) {
+            try {
+                val process = ProcessBuilder(interpreter, scriptFile.absolutePath)
+                    .directory(rootDir)
+                    .redirectErrorStream(true)
+                    .apply { environment()["PYTHONIOENCODING"] = "utf-8" }
+                    .start()
+                val output = process.inputStream.bufferedReader().use { it.readText() }
+                val exitValue = process.waitFor()
+                if (exitValue == 0 && headerFile.isFile && headerFile.length() > 0L) {
+                    logger.lifecycle("generateNativeSecrets: generated via '$interpreter'")
+                    generated = true
+                    break
+                }
+                logger.info(
+                    "generateNativeSecrets: '$interpreter' exited $exitValue" +
+                        if (output.isBlank()) "" else " ($output)"
+                )
+            } catch (e: Exception) {
+                logger.info("generateNativeSecrets: interpreter '$interpreter' unavailable (${e.message})")
+            }
+        }
+
+        if (!generated) {
+            logger.warn(
+                "generateNativeSecrets: no usable Python interpreter found; writing the inert " +
+                    "placeholder header. The addon client lock stays empty -- set ADDON_CLIENT_SECRET " +
+                    "and run tools/generate_native_secrets.py to enable it."
+            )
+            headerFile.parentFile.mkdirs()
+            headerFile.writeText(placeholder)
+        }
     }
-    commandLine(py, "tools/generate_native_secrets.py")
-    // Never fail public builds when secrets absent; script emits empty header.
-    isIgnoreExitValue = true
 }
 tasks.matching { it.name.startsWith("preBuild") || it.name.startsWith("configureCMake") }.configureEach {
     dependsOn(generateNativeSecrets)

@@ -9,7 +9,16 @@
 -keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
 
 # JNI exports use the Kotlin class and method names verbatim.
+# Every native bridge below is bound by the static long name
+# (Java_<package>_<class>_<method>) -- none of them register dynamically via
+# RegisterNatives/JNI_OnLoad -- so R8 must not rename the class or the method,
+# or the .so export stops resolving at runtime.
+#   NativeAudioEngine  -> 31 exports in NativeBridge.cpp
+#   NativeSecrets      -> 1 export in SecretsBridge.cpp (addon request signing)
+#   UsbAudioStream     -> 14 exports in the :audio module's usb-audio-output.cpp
 -keep class com.bhavya.music.playback.NativeAudioEngine { *; }
+-keep class com.bhavya.music.data.lossless.NativeSecrets { *; }
+-keep class com.decent.usbaudio.UsbAudioStream { *; }
 
 # kotlinx.serialization: keep generated serializers and Serializable models
 -keepclassmembers class com.bhavya.music.** {
