@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Bhavyam_logo.png" alt="Bhavyam Logo" width="120" height="120" style="border-radius: 50%;" />
+<img src="bhavyam.png" alt="Bhavyam Logo" width="120" height="120" style="border-radius: 50%;" />
 
 # Bhavyam
 
