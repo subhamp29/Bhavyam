@@ -198,7 +198,7 @@ jobs:
           if [ -z "$STORE_PASSWORD" ]; then MISSING="$MISSING KEY_STORE_PASSWORD"; fi
           if [ -z "$KEY_PASSWORD" ]; then MISSING="$MISSING KEY_PASSWORD"; fi
           if [ -n "$MISSING" ]; then
-            echo "::error title=Release signing not configured::Missing repository secrets:$MISSING. Without them app/build.gradle.kts falls back to initWith(debug), so the build either dies at :app:validateSigningRelease with 'Keystore file debug.keystore not found' or, worse, succeeds and publishes a debug-signed APK. The in-app updater compares signing certificates and will refuse that APK with INSTALL_FAILED_UPDATE_INCOMPATIBLE, so it must not be published. Add the secrets under Settings -> Secrets and variables -> Actions. Encode the keystore with: base64 -w0 release.jks"
+            echo "::error title=Release signing not configured::Missing repository secrets:$MISSING. Without them app/build.gradle.kts falls back to initWith(debug), so the build either dies at :app:validateSigningRelease with 'Keystore file debug.keystore not found' or, worse, succeeds and publishes a debug-signed APK. The in-app updater compares signing certificates and will refuse that APK with INSTALL_FAILED_UPDATE_INCOMPATIBLE, so it must not be published. Add them under Settings -> Secrets and variables -> Actions. Accepted names: SIGNING_KEY; KEY_STORE_PASSWORD or RELEASE_STORE_PASSWORD; KEY_PASSWORD or RELEASE_KEY_PASSWORD; optionally ALIAS or RELEASE_KEY_ALIAS. Copy the values straight from the .env file in the repository root."
             exit 1
           fi
           echo "Release signing secrets present."
