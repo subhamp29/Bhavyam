@@ -5,9 +5,9 @@
          never flashes a mismatched color. -->
     <color name="splash_background">#FF100F0F</color>
 
-    <!-- Bhavya app icon (Aug 2026 restore): the lime circle behind the
-         four bars in the official logo. Used as the adaptive icon's
-         background layer, paired with ic_launcher_foreground for the bars. -->
+    <!-- Historical accent: the lime used by earlier icon artwork and still
+         referenced by the Settings screen. NOT the adaptive icon background
+         layer - see ic_launcher_adaptive_bg below. -->
     <color name="ic_launcher_background">#FFC9FB00</color>
 
     <!-- Adaptive icon background LAYER (separate from the colour above, which
