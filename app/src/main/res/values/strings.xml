@@ -15,6 +15,23 @@
     <string name="update">Update</string>
     <string name="dismiss_update">Dismiss update</string>
     <string name="update_ready_to_install">Bhavyam v%1$s is ready to install</string>
+    <string name="update_button_download">Download</string>
+    <string name="update_button_install">Install</string>
+    <string name="update_button_retry">Retry</string>
+    <string name="update_button_allow">Allow</string>
+    <string name="update_title_ready">Update Ready (%1$s)</string>
+    <string name="update_title_downloading">Downloading Update</string>
+    <string name="update_title_failed">Update Problem</string>
+    <string name="update_checking">Checking GitHub releases\u2026</string>
+    <string name="update_current_version">Current version: %1$s</string>
+    <string name="update_error_not_newer">This build is not newer than the one installed \u2014 please download it manually</string>
+    <string name="update_downloading">Downloading update \u2026 %1$d%%</string>
+    <string name="update_downloading_unknown_size">Downloading update \u2026</string>
+    <string name="update_downloaded_tap_to_install">Download finished. Tap Install to continue.</string>
+    <string name="update_permission_required">Allow Bhavyam to install this update</string>
+    <string name="update_error_network">Download failed \u2014 check your connection and try again</string>
+    <string name="update_error_signature">This update is signed with a different key and cannot be installed safely</string>
+    <string name="update_error_unknown">Could not prepare the update \u2014 please download it manually</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -70,6 +87,7 @@
     <string name="settings_section_experimental">Experimental</string>
     <string name="settings_liquid_glass">Liquid Glass</string>
     <string name="settings_liquid_glass_sub">iOS-style translucent materials across the app</string>
+    <string name="settings_liquid_glass_unsupported">Unavailable on this device — needs Android 12 or newer</string>
     <string name="settings_lyrics_animation">Lyrics Animation</string>
     <string name="settings_lyrics_provider">Lyrics provider</string>
     <string name="settings_lyrics_provider_desc">Tried first for every song. If it returns nothing, the app automatically falls through to the other providers.</string>

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-files-path name="documents" path="Documents/" />
+    <!-- Downloaded release APKs. Kept outside Documents/ because the updater
+         writes to getExternalFilesDir(null)/updates, and reusing the documents
+         entry would hand the package installer the wrong directory. -->
+    <external-files-path name="updates" path="updates/" />
     <cache-path name="shared" path="shared/" />
     <files-path name="internal" path="." />
 </paths>

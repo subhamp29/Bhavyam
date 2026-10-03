@@ -16,9 +16,137 @@ on:
         required: false
         default: ''
 
+# A re-dispatch of the same tag must not race itself: two concurrent runs would
+# build and upload the same assets to the same release.
+concurrency:
+  group: release-${{ inputs.tag_name }}
+  cancel-in-progress: false
+
 jobs:
+  # Gate publishing on the in-app updater being able to see and install it.
+  # AppUpdateManager reads releases/latest, strips a leading "v" from the tag and
+  # compares it with versionName in app/build.gradle.kts, then downloads the
+  # first asset whose name ends in .apk and refuses to install it unless
+  # verifyDownloadedApk finds a strictly greater versionCode plus a matching
+  # signing certificate. A release that breaks any of those rules fails silently
+  # for users, so it must fail loudly here instead.
+  verify:
+    name: Verify Release Is Installable In-App
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      version_name: ${{ steps.check.outputs.version_name }}
+      version_code: ${{ steps.check.outputs.version_code }}
+      previous_tag: ${{ steps.check.outputs.previous_tag }}
+    env:
+      REQUESTED_TAG: ${{ inputs.tag_name }}
+
+    steps:
+      # fetch-depth 0 pulls every branch and every tag, so the release tag can be
+      # resolved locally below instead of trusting the dispatch input verbatim.
+      - name: Checkout repository metadata
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The dispatch input defaults to the bare "4.2.2" while the repository tag
+      # is "v4.2.2", so accept either spelling and pin the release to a commit SHA.
+      - name: Resolve release tag to a commit SHA
+        id: resolve
+        run: |
+          RESOLVED_SHA=""
+          RESOLVED_TAG=""
+          for CANDIDATE in "v${REQUESTED_TAG}" "${REQUESTED_TAG}"; do
+            CANDIDATE_SHA=$(git rev-parse --verify --quiet "${CANDIDATE}^{commit}" || true)
+            if [ -n "$CANDIDATE_SHA" ]; then
+              RESOLVED_SHA="$CANDIDATE_SHA"
+              RESOLVED_TAG="$CANDIDATE"
+              break
+            fi
+          done
+          if [ -z "$RESOLVED_SHA" ]; then
+            echo "::error::Cannot resolve the release ref: neither tag 'v${REQUESTED_TAG}' nor tag '${REQUESTED_TAG}' exists in this repository. Available tags: $(git tag -l | tr '\n' ' ')"
+            exit 1
+          fi
+          echo "sha=$RESOLVED_SHA" >> "$GITHUB_OUTPUT"
+          echo "tag=$RESOLVED_TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved '${REQUESTED_TAG}' -> tag '${RESOLVED_TAG}' at $RESOLVED_SHA"
+
+      # Everything below reads app/build.gradle.kts as it exists at the release
+      # tag rather than at the default branch, because that is what gets built.
+      - name: Checkout the exact release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Enforce tag/versionName agreement and a versionCode bump
+        id: check
+        env:
+          RELEASE_TAG: ${{ steps.resolve.outputs.tag }}
+          RELEASE_SHA: ${{ steps.resolve.outputs.sha }}
+        run: |
+          # Every parse keeps '|| true': the runner shell is "bash -e -o pipefail",
+          # so a grep that matches nothing would abort the step before the explicit
+          # ::error:: messages below could explain what is actually wrong.
+          VERSION_NAME=$(grep 'versionName = ' app/build.gradle.kts | head -n1 | sed -E 's/.*"([^"]+)".*/\1/' || true)
+          VERSION_CODE=$(grep 'versionCode = ' app/build.gradle.kts | head -n1 | sed -E 's/.*versionCode = ([0-9]+).*/\1/' || true)
+
+          if [ -z "$VERSION_NAME" ]; then
+            echo "::error::Could not parse versionName from app/build.gradle.kts at '${RELEASE_TAG}'. AppUpdateManager decides whether an update exists by comparing the release tag with versionName, so an unparseable versionName leaves every in-app update check undeterminable."
+            exit 1
+          fi
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+          # Normalise exactly the way AppUpdateManager does before comparing.
+          NORMALISED_TAG=$(printf '%s' "$REQUESTED_TAG" | sed -E 's/^[vV]//')
+          if [ "$NORMALISED_TAG" != "$VERSION_NAME" ]; then
+            echo "::error::Release tag '${REQUESTED_TAG}' does not match versionName '${VERSION_NAME}' from app/build.gradle.kts at tag '${RELEASE_TAG}'. AppUpdateManager reads releases/latest and compares the tag, after stripping a leading 'v', with versionName; when they disagree the new release is undetectable, so every in-app update check silently does nothing and users stay pinned to the old build. Re-tag as 'v${VERSION_NAME}' (or set versionName to '${NORMALISED_TAG}') and re-run."
+            exit 1
+          fi
+          echo "Tag '${REQUESTED_TAG}' normalises to '${NORMALISED_TAG}', which equals versionName '${VERSION_NAME}'."
+
+          if [ -z "$VERSION_CODE" ]; then
+            echo "::error::Could not parse versionCode from app/build.gradle.kts at '${RELEASE_TAG}'. AppUpdateManager.verifyDownloadedApk requires the downloaded APK's versionCode to be strictly greater than the installed app's, so an unparseable versionCode cannot be proven installable in-app."
+            exit 1
+          fi
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+          # Most recent tag other than the one being released, newest first.
+          PREV_TAG=""
+          for CANDIDATE in $(git tag --sort=-v:refname || true); do
+            CANDIDATE_SHA=$(git rev-parse --verify --quiet "${CANDIDATE}^{commit}" || true)
+            # Skip the release itself and any tag already pointing at the same
+            # commit, e.g. both "4.2.2" and "v4.2.2".
+            if [ -z "$CANDIDATE_SHA" ] || [ "$CANDIDATE_SHA" = "$RELEASE_SHA" ]; then
+              continue
+            fi
+            PREV_TAG="$CANDIDATE"
+            break
+          done
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "::warning::No release tag other than '${RELEASE_TAG}' exists, so the versionCode bump check was skipped. AppUpdateManager.verifyDownloadedApk only accepts an APK whose versionCode is strictly greater than the installed app's."
+          else
+            PREV_CODE=$(git show "${PREV_TAG}:app/build.gradle.kts" 2>/dev/null | grep 'versionCode = ' | head -n1 | sed -E 's/.*versionCode = ([0-9]+).*/\1/' || true)
+            if [ -z "$PREV_CODE" ]; then
+              echo "::warning::Could not parse versionCode from '${PREV_TAG}:app/build.gradle.kts', so the versionCode bump check was skipped. AppUpdateManager.verifyDownloadedApk only accepts an APK whose versionCode is strictly greater than the installed app's."
+            else
+              echo "previous_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+              if [ "$VERSION_CODE" -le "$PREV_CODE" ]; then
+                echo "::error::versionCode was not bumped: this release '${RELEASE_TAG}' ships versionCode ${VERSION_CODE}, but previous release '${PREV_TAG}' already shipped ${PREV_CODE}. AppUpdateManager.verifyDownloadedApk requires the downloaded APK's versionCode to be STRICTLY GREATER than the installed app's, so the in-app updater would download this release and then refuse to install it. Bump versionCode in app/build.gradle.kts and re-run."
+                exit 1
+              fi
+              echo "versionCode bumped ${PREV_CODE} ('${PREV_TAG}') -> ${VERSION_CODE} ('${RELEASE_TAG}')."
+            fi
+          fi
+
   release:
     name: Build & Publish Release
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,12 +154,18 @@ jobs:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       ADDON_CLIENT_SECRET: ${{ secrets.ADDON_CLIENT_SECRET }}
       RELEASE_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD || secrets.RELEASE_STORE_PASSWORD }}
+      # Authoritative version string, parsed from app/build.gradle.kts at the
+      # release tag by the verify job. It equals inputs.tag_name with any leading
+      # "v" removed, so asset names are identical for either input form.
+      TAG: ${{ needs.verify.outputs.version_name }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag_name }}
+          # Pinned to the SHA the verify job resolved, so a bare "4.2.2" input
+          # still builds the real "v4.2.2" tag.
+          ref: ${{ needs.verify.outputs.sha }}
           fetch-depth: 0
 
       - name: Set up JDK 17
@@ -82,12 +216,14 @@ jobs:
       - name: Stage Android 10 Final APKs
         run: |
           mkdir -p final_apk
-          TAG="${{ inputs.tag_name }}"
-          # Universal release (Android 10+, R8 + ProGuard + shrinkResources)
+          # TAG is the versionName parsed from the release tag by the verify job.
+          # Universal release (Android 10+, R8 + ProGuard + shrinkResources).
+          # The "1-" prefix sorts this asset first, because release assets are
+          # listed alphabetically and the in-app updater downloads the first .apk.
           if [ -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
-            cp app/build/outputs/apk/release/app-release-signed.apk final_apk/Bhavyam-v${TAG}-universal.apk
+            cp app/build/outputs/apk/release/app-release-signed.apk final_apk/Bhavyam-v${TAG}-1-universal.apk
           else
-            cp app/build/outputs/apk/release/app-release.apk final_apk/Bhavyam-v${TAG}-universal.apk
+            cp app/build/outputs/apk/release/app-release.apk final_apk/Bhavyam-v${TAG}-1-universal.apk
           fi
           # Universal uncompressed variant (Android 10+, raw debuggable/unminified)
           if [ -f "app/build/outputs/apk/rawRelease/app-rawRelease-signed.apk" ]; then
@@ -121,7 +257,6 @@ jobs:
 
       - name: Stage Android 7 Final APK
         run: |
-          TAG="${{ inputs.tag_name }}"
           if [ -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
             cp app/build/outputs/apk/release/app-release-signed.apk final_apk/Bhavyam-v${TAG}-android7.apk
           else
@@ -148,7 +283,7 @@ jobs:
 
       - name: Prepare Release Notes & Compatibility Notice
         env:
-          TAG: ${{ inputs.tag_name }}
+          TAG: ${{ needs.verify.outputs.version_name }}
           NOTES: ${{ inputs.release_notes }}
         run: |
           cat << 'EOF' | sed 's/^ *//' > notice.md
@@ -156,15 +291,18 @@ jobs:
 
           | Package | Recommended OS | Description |
           | :--- | :--- | :--- |
-          | **`Bhavyam-v__TAG__-universal.apk`** (~22 MB) | **Android 10+ (Android 10 – 16+)** | **Standard Recommended Release.** R8-optimized with uncompressed page-aligned native libraries for instant memory mapping. |
+          | **`Bhavyam-v__TAG__-1-universal.apk`** (~22 MB) | **Android 10+ (Android 10 – 16+)** | **Standard Recommended Release.** R8-optimized with uncompressed page-aligned native libraries for instant memory mapping. |
           | **`Bhavyam-v__TAG__-universal-uncompressed.apk`** (~89 MB) | **Android 10+ (Android 10 – 16+)** | **Raw Release.** Unminified debuggable variant with uncompressed native libraries. |
           | **`Bhavyam-v__TAG__-android7.apk`** (~17 MB) | **Android 7.0 – 9.0 (Legacy)** | **Legacy Android 7.0+ Variant.** Built with compressed native libraries for older package managers. |
+
+          > [!NOTE]
+          > All three APKs are attached to this release and each one is listed in `SHA256SUMS.txt`. The `1-` prefix on the recommended build is deliberate: the in-app updater downloads the **first** asset whose name ends in `.apk`, and release assets are ordered alphabetically, so **`Bhavyam-v__TAG__-1-universal.apk`** is always the build that **Check for updates** offers. Download the other two manually if you need them.
 
           > [!WARNING]
           > **Notice for Android 7.0 – 9.0 Users (`Bhavyam-v__TAG__-android7.apk`):**
           > - Hardware GPU glassmorphism / live blur requires Android 12+ and is automatically replaced with translucent dark canvas acrylic styling on older devices.
           > - The media notification uses classic Android media controls rather than Android 13's wavy-progress player.
-          > - For any device running Android 10 or newer, please install the standard **`Bhavyam-v__TAG__-universal.apk`** for optimal performance and memory efficiency.
+          > - For any device running Android 10 or newer, please install the standard **`Bhavyam-v__TAG__-1-universal.apk`** for optimal performance and memory efficiency.
           EOF
 
           sed -i "s/__TAG__/${TAG}/g" notice.md

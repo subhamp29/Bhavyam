@@ -133,6 +133,9 @@ import com.bhavya.music.ui.theme.SquircleShape
 import com.bhavya.music.ui.theme.rememberLayerBackdrop
 import com.bhavya.music.ui.theme.isLiquidGlassBackdropSupported
 import com.bhavya.music.ui.theme.liquidGlassSource
+import com.bhavya.music.ui.common.updateActionEnabled
+import com.bhavya.music.ui.common.updateActionLabel
+import com.bhavya.music.ui.common.updateInstallSubtitle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -144,12 +147,12 @@ class MainShellViewModel @Inject constructor(
 ) : ViewModel() {
     val updateInfo = appUpdateManager.updateInfo
 
-    fun dismissUpdate(version: String) {
-        appUpdateManager.dismissUpdate(version)
+    fun dismissUpdate() {
+        appUpdateManager.dismissUpdate()
     }
 
-    fun openUpdate(context: android.content.Context) {
-        appUpdateManager.openUpdate(context)
+    fun onUpdateAction(context: android.content.Context) {
+        appUpdateManager.performPrimaryUpdateAction(context)
     }
 }
 
@@ -278,9 +281,11 @@ fun MainShell(
                 .zIndex(10f),
         ) {
             UpdatePromptCard(
+                installState = updateInfo.installState,
+                canInstallInApp = updateInfo.canInstallInApp,
                 version = updateInfo.latestVersion,
-                onUpdate = { mainShellViewModel.openUpdate(context) },
-                onDismiss = { mainShellViewModel.dismissUpdate(updateInfo.latestVersion) },
+                onUpdate = { mainShellViewModel.onUpdateAction(context) },
+                onDismiss = { mainShellViewModel.dismissUpdate() },
             )
         }
 
@@ -312,10 +317,16 @@ fun MainShell(
 
 @Composable
 private fun UpdatePromptCard(
+    installState: com.bhavya.music.data.update.UpdateInstallState,
+    canInstallInApp: Boolean,
     version: String,
     onUpdate: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val subtitle = updateInstallSubtitle(installState, version, canInstallInApp)
+    val actionLabel = updateActionLabel(installState, canInstallInApp)
+    val actionEnabled = updateActionEnabled(installState)
+
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.primaryContainer,
@@ -342,7 +353,7 @@ private fun UpdatePromptCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update_ready_to_install, version),
+                    text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                 )
@@ -352,10 +363,10 @@ private fun UpdatePromptCard(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .clip(RoundedCornerShape(14.dp))
-                    .clickable(onClick = onUpdate),
+                    .clickable(enabled = actionEnabled, onClick = onUpdate),
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update),
+                    text = actionLabel,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimary,

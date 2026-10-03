@@ -112,8 +112,9 @@ class SettingsViewModel @Inject constructor(
     val authState: StateFlow<com.bhavya.music.data.model.AuthState> = authRepository.authState
     val updateInfo = appUpdateManager.updateInfo
 
-    fun checkForUpdates() = appUpdateManager.checkForUpdate(isSilent = false)
-    fun openUpdate(context: android.content.Context) = appUpdateManager.openUpdate(context)
+    // Both update surfaces route through onUpdateAction; a separate
+    // "check for updates" entry point had no remaining callers.
+    fun onUpdateAction(context: android.content.Context) = appUpdateManager.performPrimaryUpdateAction(context)
 
     /** YouTube Music account connection + playlist-sync state (§ YouTube Music). */
     val ytConnection: StateFlow<com.bhavya.music.data.ytmusic.YtConnection> = ytAuthManager.connection
@@ -135,6 +136,8 @@ class SettingsViewModel @Inject constructor(
     val hiddenYtLibraryPlaylistIds: StateFlow<Set<String>> = ytMusicPreferences.hiddenLibraryPlaylistIds
         .withSettingsFallback("YouTube library visibility", emptySet())
         .stateIn(viewModelScope, SettingsSharing, emptySet())
+    private val backupJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+
     private val _ytChannels = MutableStateFlow<List<com.bhavya.music.data.music.YtChannelOption>>(emptyList())
     val ytChannels: StateFlow<List<com.bhavya.music.data.music.YtChannelOption>> = _ytChannels.asStateFlow()
     private val _ytChannelsLoading = MutableStateFlow(false)
@@ -683,7 +686,7 @@ class SettingsViewModel @Inject constructor(
     fun stagePendingRestore(content: String, uri: android.net.Uri) {
         launchSettingsAction("stage the restore") {
             val backup = try {
-                kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                backupJson
                     .decodeFromString(com.bhavya.music.data.backup.BackupFile.serializer(), content)
                     .takeIf { it.type == "bhavya-backup" }
             } catch (e: Exception) { null }

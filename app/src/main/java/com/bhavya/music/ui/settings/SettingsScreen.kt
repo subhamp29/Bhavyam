@@ -80,6 +80,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
@@ -110,23 +115,19 @@ import com.bhavya.music.ui.player.LyricsSizeDialog
 import androidx.compose.material.icons.filled.FormatSize
 import kotlin.math.roundToInt
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.SmartDisplay
 import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -215,7 +216,12 @@ import com.bhavya.music.ui.common.ExpressiveHeader
 import com.bhavya.music.ui.common.safeDrawingBottomPadding
 import com.bhavya.music.ui.common.safeHorizontalContentPadding
 import com.bhavya.music.ui.common.adaptiveContentWidth
+import com.bhavya.music.ui.common.updateActionEnabled
+import com.bhavya.music.ui.common.updateActionLabel
+import com.bhavya.music.ui.common.updateInstallSubtitle
+import com.bhavya.music.ui.common.updateRowTitle
 import com.bhavya.music.ui.theme.ExpressivePillShape
+import com.bhavya.music.ui.theme.isDeviceGlassCapable
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.DarkMode
@@ -394,7 +400,7 @@ enum class SettingsTab(
     LIBRARY(
         title = "Library & Content",
         subtitle = "Home layout, Playlist imports, Downloads, Exclusions",
-        icon = Icons.Filled.QueueMusic,
+        icon = Icons.AutoMirrored.Filled.QueueMusic,
     ),
     DATA_BACKUP(
         title = "Data & Storage",
@@ -934,7 +940,7 @@ fun SettingsScreen(
                                 isHighlighted = (highlightedSettingId == "audio.usb_exclusive"),
                             )
                             1 -> SettingsActionCard(
-                                icon = Icons.Filled.VolumeUp,
+                                icon = Icons.AutoMirrored.Filled.VolumeUp,
                                 iconContainer = MaterialTheme.colorScheme.secondaryContainer,
                                 iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 title = "Loudness Normalization",
@@ -1009,10 +1015,14 @@ fun SettingsScreen(
                         item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SectionLabel(stringResource(R.string.settings_section_appearance))
+                    // Liquid Glass renders nothing below API 31 / on low-RAM / software-rendered
+                    // devices, so the switch must not be operable there. Same predicate the
+                    // renderer gates on — see LiquidGlass.kt:isDeviceGlassCapable().
+                    val liquidGlassAvailable = isDeviceGlassCapable()
                     SettingsGroup(rowCount = 7) { index, position ->
                         when (index) {
                             0 -> ThemeModeSelectorCard(
-                                currentThemeMode = theme?.themeMode ?: ThemeMode.SYSTEM,
+                                currentThemeMode = theme.themeMode,
                                 onSelectThemeMode = viewModel::setThemeMode,
                                 position = position,
                                 isHighlighted = (highlightedSettingId == "appearance.theme_mode"),
@@ -1023,8 +1033,8 @@ fun SettingsScreen(
                                 iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
                                 title = stringResource(R.string.settings_amoled),
                                 subtitle = stringResource(R.string.settings_amoled_sub),
-                                checked = theme?.amoled ?: false,
-                                enabled = theme?.themeMode != ThemeMode.LIGHT,
+                                checked = theme.amoled,
+                                enabled = theme.themeMode != ThemeMode.LIGHT,
                                 onCheckedChange = viewModel::setAmoled,
                                 position = position,
                                 isHighlighted = (highlightedSettingId == "appearance.amoled"),
@@ -1035,7 +1045,7 @@ fun SettingsScreen(
                                 iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 title = stringResource(R.string.settings_dynamic_color),
                                 subtitle = stringResource(R.string.settings_dynamic_color_sub),
-                                checked = theme?.mode == AccentMode.DYNAMIC,
+                                checked = theme.mode == AccentMode.DYNAMIC,
                                 onCheckedChange = { enabled ->
                                     viewModel.setAccentMode(if (enabled) AccentMode.DYNAMIC else AccentMode.MANUAL)
                                 },
@@ -1047,8 +1057,13 @@ fun SettingsScreen(
                                 iconContainer = MaterialTheme.colorScheme.primaryContainer,
                                 iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 title = stringResource(R.string.settings_liquid_glass),
-                                subtitle = stringResource(R.string.settings_liquid_glass_sub),
-                                checked = theme?.liquidGlass ?: false,
+                                subtitle = if (liquidGlassAvailable) {
+                                    stringResource(R.string.settings_liquid_glass_sub)
+                                } else {
+                                    stringResource(R.string.settings_liquid_glass_unsupported)
+                                },
+                                checked = theme.liquidGlass,
+                                enabled = liquidGlassAvailable,
                                 onCheckedChange = viewModel::setLiquidGlass,
                                 position = position,
                                 isHighlighted = (highlightedSettingId == "appearance.liquid_glass"),
@@ -1113,8 +1128,8 @@ fun SettingsScreen(
                     ) {
                         Column(Modifier.padding(20.dp)) {
                             AccentPresetGrid(
-                                currentMode = theme?.mode ?: AccentMode.MANUAL,
-                                selectedHex = theme?.accentColorHex,
+                                currentMode = theme.mode,
+                                selectedHex = theme.accentColorHex,
                                 onPickPreset = { hex -> viewModel.setManualAccent(Color(android.graphics.Color.parseColor(hex))) },
                                 onPickMono = { viewModel.setAccentMode(AccentMode.MONOCHROME) },
                                 onPickCustom = viewModel::openColorWheel,
@@ -1215,7 +1230,7 @@ fun SettingsScreen(
                                 isHighlighted = (highlightedSettingId == "appearance.lyrics_size"),
                             )
                             6 -> SettingsToggleCard(
-                                icon = Icons.Filled.VolumeUp,
+                                icon = Icons.AutoMirrored.Filled.VolumeUp,
                                 iconContainer = MaterialTheme.colorScheme.tertiaryContainer,
                                 iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
                                 title = "System Audio Effects",
@@ -1359,7 +1374,7 @@ fun SettingsScreen(
                                     "$selectedCount of ${allPlaylists.size} playlists selected"
                                 }
                                 SettingsActionCard(
-                                    icon = Icons.Filled.FormatListBulleted,
+                                    icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                                     iconContainer = MaterialTheme.colorScheme.tertiaryContainer,
                                     iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
                                     title = stringResource(R.string.settings_select_playlists),
@@ -1370,7 +1385,7 @@ fun SettingsScreen(
                                 )
                             } else {
                                 SettingsActionCard(
-                                    icon = Icons.Filled.QueueMusic,
+                                    icon = Icons.AutoMirrored.Filled.QueueMusic,
                                     iconContainer = MaterialTheme.colorScheme.tertiaryContainer,
                                     iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
                                     title = "Import from YouTube Music",
@@ -1399,7 +1414,7 @@ fun SettingsScreen(
                                 )
                             }
                             5 -> SettingsActionCard(
-                                icon = Icons.Filled.QueueMusic,
+                                icon = Icons.AutoMirrored.Filled.QueueMusic,
                                 iconContainer = MaterialTheme.colorScheme.primaryContainer,
                                 iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 title = stringResource(R.string.settings_make_local),
@@ -1507,7 +1522,7 @@ fun SettingsScreen(
                                 SettingsGroup(rowCount = 3) { index, position ->
                                     when (index) {
                                         0 -> SettingsActionCard(
-                                            icon = Icons.Filled.QueueMusic,
+                                            icon = Icons.AutoMirrored.Filled.QueueMusic,
                                             iconContainer = MaterialTheme.colorScheme.primaryContainer,
                                             iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
                                             title = "Import from YouTube Music",
@@ -1517,7 +1532,7 @@ fun SettingsScreen(
                                             isHighlighted = (highlightedSettingId == "library.import_yt"),
                                         )
                                         1 -> SettingsActionCard(
-                                            icon = Icons.Filled.QueueMusic,
+                                            icon = Icons.AutoMirrored.Filled.QueueMusic,
                                             iconContainer = MaterialTheme.colorScheme.secondaryContainer,
                                             iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
                                             title = "Import from Spotify / Apple Music",
@@ -1699,14 +1714,21 @@ fun SettingsScreen(
 
                     // Prominent Update Available Banner Card (if newer version detected)
                     if (updateInfo.isUpdateAvailable) {
+                        val updateActionUsable = updateActionEnabled(updateInfo.installState)
                         Surface(
                             shape = CardOuterShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = if (updateActionUsable) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            },
                             shadowElevation = 3.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(CardOuterShape)
-                                .clickable { viewModel.openUpdate(context) },
+                                .clickable(enabled = updateActionUsable) {
+                                    viewModel.onUpdateAction(context)
+                                },
                         ) {
                             Row(
                                 modifier = Modifier
@@ -1730,13 +1752,17 @@ fun SettingsScreen(
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Update Available!",
+                                        text = stringResource(R.string.update_available),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     )
                                     Text(
-                                        text = "Version ${updateInfo.latestVersion} is ready to install",
+                                        text = updateInstallSubtitle(
+                                            installState = updateInfo.installState,
+                                            version = updateInfo.latestVersion,
+                                            canInstallInApp = updateInfo.canInstallInApp,
+                                        ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                                     )
@@ -1746,7 +1772,7 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                 ) {
                                     Text(
-                                        text = "Update",
+                                        text = updateActionLabel(updateInfo.installState, updateInfo.canInstallInApp),
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimary,
@@ -1764,20 +1790,26 @@ fun SettingsScreen(
                         icon = Icons.Filled.CloudDownload,
                         iconContainer = if (updateInfo.isUpdateAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         iconTint = if (updateInfo.isUpdateAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondaryContainer,
-                        title = if (updateInfo.isUpdateAvailable) "Update Ready (${updateInfo.latestVersion})" else "Check for Updates",
+                        title = updateRowTitle(
+                            isUpdateAvailable = updateInfo.isUpdateAvailable,
+                            installState = updateInfo.installState,
+                            version = updateInfo.latestVersion,
+                        ),
                         subtitle = when {
-                            updateInfo.isChecking -> "Checking GitHub releases..."
-                            updateInfo.isUpdateAvailable -> "Tap to download new version"
+                            updateInfo.isChecking -> stringResource(R.string.update_checking)
+                            updateInfo.isUpdateAvailable -> updateInstallSubtitle(
+                                installState = updateInfo.installState,
+                                version = updateInfo.latestVersion,
+                                canInstallInApp = updateInfo.canInstallInApp,
+                            )
                             !updateInfo.message.isNullOrBlank() -> updateInfo.message.orEmpty()
-                            else -> "Current version: ${appVersionName(context)}"
+                            else -> stringResource(R.string.update_current_version, appVersionName(context))
                         },
-                        onClick = {
-                            if (updateInfo.isUpdateAvailable) {
-                                viewModel.openUpdate(context)
-                            } else {
-                                viewModel.checkForUpdates()
-                            }
-                        },
+                        // A running download owns the tap; without this the row
+                        // would swallow the press and do nothing, since the
+                        // dispatch maps Downloading to a no-op.
+                        enabled = updateActionEnabled(updateInfo.installState),
+                        onClick = { viewModel.onUpdateAction(context) },
                         isHighlighted = (highlightedSettingId == "about.check_updates"),
                     )
 
@@ -2702,20 +2734,37 @@ private fun SettingsActionCard(
     title: String,
     subtitle: String,
     danger: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     position: GroupPosition = GroupPosition.SINGLE,
     isHighlighted: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val scale = rememberPressScale(interactionSource)
-    val titleColor = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    // A disabled card must not react, and must not invite a tap, so the press
+    // scale is dropped alongside the click.
+    val scale = if (enabled) rememberPressScale(interactionSource) else 1f
+    val titleColor = when {
+        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        danger -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val subtitleColor = if (enabled) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    }
     val shape = groupShape(position)
 
     Card(
         onClick = onClick,
+        enabled = enabled,
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = when {
+                !enabled -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+                isHighlighted -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                else -> MaterialTheme.colorScheme.surfaceContainerHigh
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         interactionSource = interactionSource,
@@ -2732,12 +2781,12 @@ private fun SettingsActionCard(
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = titleColor, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = subtitleColor, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
             Icon(
                 Icons.Filled.ChevronRight,
                 contentDescription = null,
-                tint = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (danger) MaterialTheme.colorScheme.error else subtitleColor,
             )
         }
     }
@@ -3073,7 +3122,7 @@ private fun YouTubeAccountRow(
                     contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 ),
             ) {
-                Icon(Icons.Filled.Logout, contentDescription = "Disconnect")
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Disconnect")
             }
         }
     }
@@ -3201,7 +3250,7 @@ private fun LastFmIntegrationCard(
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
                         ),
                     ) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Disconnect")
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Disconnect")
                     }
                 }
             }
@@ -4536,7 +4585,7 @@ private fun YouTubeLibraryVisibilitySheet(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
-                                        Icons.Filled.QueueMusic,
+                                        Icons.AutoMirrored.Filled.QueueMusic,
                                         contentDescription = null,
                                         tint = if (isShown) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -4678,7 +4727,7 @@ private fun SyncPlaylistsSheet(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
-                                        Icons.Filled.QueueMusic,
+                                        Icons.AutoMirrored.Filled.QueueMusic,
                                         contentDescription = null,
                                         tint = if (isChecked) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(22.dp),

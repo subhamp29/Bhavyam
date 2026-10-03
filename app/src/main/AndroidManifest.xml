@@ -6,6 +6,10 @@
         tools:overrideLibrary="com.mocharealm.accompanist.lyrics.ui, com.mocharealm.accompanist.lyrics.core, com.decent.usbaudio" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Hands the downloaded release APK to the system package installer so an
+         update can complete in-app. The user still confirms in the system
+         dialog, and the per-app "install unknown apps" grant is required. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />

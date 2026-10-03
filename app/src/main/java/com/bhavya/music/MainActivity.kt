@@ -50,6 +50,11 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
     @Inject
     lateinit var appLocaleManager: AppLocaleManager
 
+    // Application-scoped singleton, so this is the same instance MainShell's
+    // ViewModel observes -- injecting it here cannot fork update state.
+    @Inject
+    lateinit var appUpdateManager: com.bhavya.music.data.update.AppUpdateManager
+
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun attachBaseContext(newBase: Context) {
@@ -171,6 +176,10 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
     override fun onResume() {
         super.onResume()
         requestHighestSupportedRefreshRate()
+        // Foreground hook for the update check. Throttled inside the manager
+        // (6h after a success), so returning to the app between songs costs one
+        // SharedPreferences read rather than a GitHub round trip.
+        runCatching { appUpdateManager.onAppForegrounded() }
     }
 
     /**
