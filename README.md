@@ -7,11 +7,11 @@
 **Next-Gen YouTube Music Client with Algorithmic Smart Playlist Generator, Real-Time Synced Lyrics & Universal Last.fm Scrobbler for Android.**
 
 <p align="center">
-  <a href="https://github.com/subhamp29/Bhavyamm/stargazers">
-    <img src="https://img.shields.io/github/stars/subhamp29/Bhavyamm?style=for-the-badge&color=ffd0b0&labelColor=2d2d2d" alt="Stars" />
+  <a href="https://github.com/subhamp29/Bhavyam/stargazers">
+    <img src="https://img.shields.io/github/stars/subhamp29/Bhavyam?style=for-the-badge&color=ffd0b0&labelColor=2d2d2d" alt="Stars" />
   </a>
-  <a href="https://github.com/subhamp29/Bhavyamm/network/members">
-    <img src="https://img.shields.io/github/forks/subhamp29/Bhavyamm?style=for-the-badge&color=ffb4a2&labelColor=2d2d2d" alt="Forks" />
+  <a href="https://github.com/subhamp29/Bhavyam/network/members">
+    <img src="https://img.shields.io/github/forks/subhamp29/Bhavyam?style=for-the-badge&color=ffb4a2&labelColor=2d2d2d" alt="Forks" />
   </a>
   <a href="#">
     <img src="https://img.shields.io/badge/Client-YouTube%20Music-FF0000?style=for-the-badge&logo=youtubemusic&logoColor=white&labelColor=2d2d2d" alt="YouTube Music Client" />
@@ -26,11 +26,11 @@
 
 <p align="center">
   <a href="https://trendshift.io/repositories/197973?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-197973" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/trendshift/repositories/197973/daily?language=Kotlin" alt="subhamp29%2FBhavyamm | Trendshift" width="250" height="55" />
+    <img src="https://trendshift.io/api/badge/trendshift/repositories/197973/daily?language=Kotlin" alt="subhamp29%2FBhavyam | Trendshift" width="250" height="55" />
   </a>
   &nbsp;
   <a href="https://trendshift.io/repositories/197973?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-197973" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/trendshift/repositories/197973/weekly?language=Kotlin" alt="subhamp29%2FBhavyamm | Trendshift" width="250" height="55" />
+    <img src="https://trendshift.io/api/badge/trendshift/repositories/197973/weekly?language=Kotlin" alt="subhamp29%2FBhavyam | Trendshift" width="250" height="55" />
   </a>
 </p>
 
@@ -88,7 +88,7 @@ Built with **Material 3 Expressive**, Bhavyam combines effortless ad-free stream
 
 ## <img src="https://api.iconify.design/lucide:rocket.svg?color=%23C6F100" width="20" height="20" align="center" /> Getting Started
 
-1. Download the latest APK from the **[Releases](https://github.com/subhamp29/Bhavyamm/releases)** or **[Actions](https://github.com/subhamp29/Bhavyamm/actions)** tab.
+1. Download the latest APK from the **[Releases](https://github.com/subhamp29/Bhavyam/releases)** or **[Actions](https://github.com/subhamp29/Bhavyam/actions)** tab.
 2. Install `Bhavyam-v4.2.2-release.apk` on your Android device (Android 7.0+).
 3. Connect your Last.fm account in **Settings → Integrations** to unlock the scrobbler, taste mixes, and personalized discovery radar.
 4. Enjoy ad-free streaming and smart playlist generation!
@@ -98,8 +98,8 @@ Built with **Material 3 Expressive**, Bhavyam combines effortless ad-free stream
 ## <img src="https://api.iconify.design/lucide:terminal.svg?color=%23C6F100" width="20" height="20" align="center" /> Building from Source
 
 ```bash
-git clone https://github.com/subhamp29/Bhavyamm.git
-cd Bhavyamm
+git clone https://github.com/subhamp29/Bhavyam.git
+cd Bhavyam
 ./gradlew assembleRelease
 ```
 
@@ -125,4 +125,4 @@ cd Bhavyamm
 
 ---
 
-[![GitGem](https://gitgem.org/api/badge/github/subhamp29/Bhavyamm.svg)](https://gitgem.org/github/subhamp29/Bhavyamm)
+[![GitGem](https://gitgem.org/api/badge/github/subhamp29/Bhavyam.svg)](https://gitgem.org/github/subhamp29/Bhavyam)
