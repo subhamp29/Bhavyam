@@ -349,7 +349,16 @@ val generateNativeSecrets by tasks.registering {
         }
 
     inputs.file(scriptFile)
-    inputs.file(dotEnvFile).optional()
+    // .env is developer-local and gitignored, so it is absent on CI. Gradle 9 still
+    // fails input validation for a missing inputs.file(...) target even with
+    // .optional(), which broke every release build with "specifies file '.env'
+    // which doesn't exist". Track presence instead: when the file exists it is a
+    // real input, and when it does not only the flag below is recorded.
+    val dotEnvPresent = dotEnvFile.isFile
+    inputs.property("dotEnvPresent", dotEnvPresent)
+    if (dotEnvPresent) {
+        inputs.file(dotEnvFile).withPropertyName("dotEnv")
+    }
     outputs.file(headerFile)
 
     doLast {
