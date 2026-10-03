@@ -136,7 +136,7 @@ fun ExternalPlaylistImportScreen(
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
-                                "Paste a public Spotify or Apple Music playlist link. Bhavya reads every track off the playlist page and matches them to playable songs — no account or API key needed.",
+                                "Paste a public Spotify or Apple Music playlist link. Bhavyam reads every track off the playlist page and matches them to playable songs — no account or API key needed.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

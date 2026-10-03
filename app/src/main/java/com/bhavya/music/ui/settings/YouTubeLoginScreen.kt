@@ -222,7 +222,7 @@ fun YouTubeLoginScreen(
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        "Bhavya never sees your password — sign-in happens entirely inside Google's page.",
+                        "Bhavyam never sees your password — sign-in happens entirely inside Google's page.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

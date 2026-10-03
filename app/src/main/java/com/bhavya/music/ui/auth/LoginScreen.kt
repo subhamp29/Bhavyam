@@ -109,7 +109,7 @@ fun LoginScreen(
                         )
                     }
                 }
-                Text("Bhavya", style = MaterialTheme.typography.headlineMedium)
+                Text("Bhavyam", style = MaterialTheme.typography.headlineMedium)
                 Text(
                     "Your music, your way — powered by YouTube Music",
                     style = MaterialTheme.typography.bodyMedium,

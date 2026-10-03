@@ -1293,7 +1293,7 @@ fun SettingsScreen(
                         else ->
                             if (!ytConnected) "Connect an account first"
                             else if (ytSyncEnabled) "Selected playlists mirror to your account, 24/7" + lastSyncSuffix(ytLastSyncAt)
-                            else "Keep your YT Music library in sync with Bhavya"
+                            else "Keep your YT Music library in sync with Bhavyam"
                     }
                     // Display name of the active channel: the picked entry when
                     // the channel list was loaded, otherwise the stored name.
@@ -1415,9 +1415,9 @@ fun SettingsScreen(
                                     iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
                                     title = stringResource(R.string.settings_yt_history),
                                     subtitle = if (ytHistorySyncEnabled) {
-                                        "On • songs you listen to in Bhavya, including lossless & downloads, appear in your YouTube Music history"
+                                        "On • songs you listen to in Bhavyam, including lossless & downloads, appear in your YouTube Music history"
                                     } else {
-                                        "Off • listening in Bhavya stays out of your YouTube Music history"
+                                        "Off • listening in Bhavyam stays out of your YouTube Music history"
                                     },
                                     checked = ytHistorySyncEnabled,
                                     onCheckedChange = viewModel::setYtHistorySyncEnabled,
@@ -2142,7 +2142,7 @@ fun SettingsScreen(
                 }
 
                 Text(
-                    "Lossless streams provide bit-exact studio quality (FLAC/MP3). If your chosen quality is unavailable, Bhavya automatically streams the higher quality tier above it (or falls back to YouTube Music if unavailable in lossless).",
+                    "Lossless streams provide bit-exact studio quality (FLAC/MP3). If your chosen quality is unavailable, Bhavyam automatically streams the higher quality tier above it (or falls back to YouTube Music if unavailable in lossless).",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )
@@ -2292,7 +2292,7 @@ fun SettingsScreen(
                 }
 
                 Text(
-                    "Lossless downloads provide bit-exact studio quality (FLAC/MP3). If your chosen quality is unavailable, Bhavya automatically downloads the higher quality tier above it (or falls back to YouTube Music if unavailable in lossless).",
+                    "Lossless downloads provide bit-exact studio quality (FLAC/MP3). If your chosen quality is unavailable, Bhavyam automatically downloads the higher quality tier above it (or falls back to YouTube Music if unavailable in lossless).",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )
@@ -3585,13 +3585,13 @@ private fun AboutCard(versionName: String) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.bhavya),
-                    contentDescription = "Bhavya",
+                    contentDescription = "Bhavyam",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(72.dp),
                 )
             }
             Spacer(Modifier.height(14.dp))
-            Text("Bhavya", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text("Bhavyam", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Surface(
                 shape = ExpressivePillShape,
@@ -4323,7 +4323,7 @@ private fun YouTubeChannelSheet(
                 Column(Modifier.weight(1f)) {
                     Text("YouTube Channel", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
-                        "Pick which channel's library, likes & history Bhavya uses",
+                        "Pick which channel's library, likes & history Bhavyam uses",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -4485,7 +4485,7 @@ private fun YouTubeLibraryVisibilitySheet(
                 Column(Modifier.weight(1f)) {
                     Text("YouTube Playlists Shown", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
-                        "Choose which account playlists appear in Bhavya",
+                        "Choose which account playlists appear in Bhavyam",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

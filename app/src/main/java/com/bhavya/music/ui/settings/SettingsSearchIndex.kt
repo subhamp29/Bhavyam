@@ -715,7 +715,7 @@ object SettingsSearchIndex {
                 SettingsEntry(
                     id = "youtube.shown_playlists",
                     title = "Show / Hide Account Playlists",
-                    subtitle = "Control which playlists from your YouTube account appear in Bhavya",
+                    subtitle = "Control which playlists from your YouTube account appear in Bhavyam",
                     keywords = listOf(
                         "show playlists", "hide playlists", "visibility", "account playlists",
                         "library visibility", "filter playlists"
@@ -935,7 +935,7 @@ object SettingsSearchIndex {
                 SettingsEntry(
                     id = "backup.restore",
                     title = "Restore from Backup",
-                    subtitle = "Import a previously saved Bhavya backup file to restore settings & playlists",
+                    subtitle = "Import a previously saved Bhavyam backup file to restore settings & playlists",
                     keywords = listOf(
                         "restore", "import backup", "recover data", "load backup", "restore playlists",
                         "restore settings", "json restore"

@@ -125,7 +125,7 @@ internal data class PersistedPlaybackSession(
     val queue: List<PlayableTrack>,
     val currentIndex: Int,
     val positionMs: Long,
-    val sourceLabel: String = "Bhavya",
+    val sourceLabel: String = "Bhavyam",
     val isEndlessQueue: Boolean = false,
     val shuffleEnabled: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
@@ -138,7 +138,7 @@ data class MusicPlayerState(
     val current: PlayableTrack? = null,
     val queue: List<PlayableTrack> = emptyList(),
     val currentIndex: Int = -1,
-    val sourceLabel: String = "Bhavya",
+    val sourceLabel: String = "Bhavyam",
     val isEndlessQueue: Boolean = false,
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
@@ -164,7 +164,7 @@ data class MusicPlayerState(
  */
 data class PlaybackChromeState(
     val current: PlayableTrack? = null,
-    val sourceLabel: String = "Bhavya",
+    val sourceLabel: String = "Bhavyam",
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val queueSize: Int = 0,
@@ -1579,7 +1579,7 @@ class MusicPlayer @Inject constructor(
 
     fun play(
         track: PlayableTrack,
-        sourceLabel: String = "Bhavya",
+        sourceLabel: String = "Bhavyam",
         startRadio: Boolean = true,
     ) {
         pendingRestoredSession = null
@@ -1608,7 +1608,7 @@ class MusicPlayer @Inject constructor(
     fun playQueue(
         tracks: List<PlayableTrack>,
         startIndex: Int = 0,
-        sourceLabel: String = "Bhavya",
+        sourceLabel: String = "Bhavyam",
         startShuffled: Boolean = false,
     ) {
         disableRadioQueue()
@@ -1624,7 +1624,7 @@ class MusicPlayer @Inject constructor(
         tracks: List<PlayableTrack>,
         startIndex: Int,
         endlessDiscover: Boolean,
-        sourceLabel: String = if (endlessDiscover) "Discover" else "Bhavya",
+        sourceLabel: String = if (endlessDiscover) "Discover" else "Bhavyam",
         startShuffled: Boolean = false,
     ) {
         if (tracks.isEmpty()) return

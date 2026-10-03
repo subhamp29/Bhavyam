@@ -610,7 +610,7 @@ private fun LaunchGate() {
                 )
             }
             Spacer(Modifier.height(18.dp))
-            Text("Bhavya", style = MaterialTheme.typography.headlineSmall)
+            Text("Bhavyam", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(20.dp))
             ExpressiveLoadingIndicator(message = "Preparing your music")
         }

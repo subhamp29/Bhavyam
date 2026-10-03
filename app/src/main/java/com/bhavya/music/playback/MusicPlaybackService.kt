@@ -502,8 +502,8 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
                 Notification.Builder(this, CHANNEL_ID)
             } else {
                 @Suppress("DEPRECATION") Notification.Builder(this)
-            }.setSmallIcon(R.drawable.bhavya)
-             .setContentTitle(musicPlayer.state.value.current?.title ?: "Bhavya")
+            }.setSmallIcon(R.drawable.ic_launcher_monochrome)
+             .setContentTitle(musicPlayer.state.value.current?.title ?: "Bhavyam")
              .setContentText(musicPlayer.state.value.current?.artist ?: "Music player")
              .setOnlyAlertOnce(true)
              .build()
@@ -1082,8 +1082,8 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
             // so the play action always reads the actual current state.
             val playPauseLabel = if (state.isPlaying) "Pause" else "Play"
             return builder
-                .setSmallIcon(R.drawable.bhavya)
-                .setContentTitle(state.current?.title ?: "Bhavya")
+                .setSmallIcon(R.drawable.ic_launcher_monochrome)
+                .setContentTitle(state.current?.title ?: "Bhavyam")
                 .setContentText(state.current?.artist ?: "Music player")
                 .setSubText(state.current?.album)
                 .setContentIntent(openAppPendingIntent())
@@ -1146,8 +1146,8 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
         }
 
         return builder
-            .setSmallIcon(R.drawable.bhavya)
-            .setContentTitle(state.current?.title ?: "Bhavya")
+            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+            .setContentTitle(state.current?.title ?: "Bhavyam")
             .setContentText(state.current?.artist ?: "Music player")
             .setSubText(state.current?.album)
             .setContentIntent(openAppPendingIntent())
@@ -1204,7 +1204,7 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
         // 192px is already sharp. Two sizes keep the Binder parcel small.
         if (art != null) setImageViewBitmap(R.id.notification_artwork, scaledBitmap(art, if (expanded) 288 else 192))
         else setImageViewResource(R.id.notification_artwork, R.mipmap.ic_launcher)
-        setTextViewText(R.id.notification_title, state.current?.title ?: "Bhavya")
+        setTextViewText(R.id.notification_title, state.current?.title ?: "Bhavyam")
         setTextViewText(R.id.notification_artist, state.current?.artist ?: "Music player")
         setTextColor(R.id.notification_title, palette.onSurface)
         setTextColor(R.id.notification_artist, palette.onSurfaceVariant)
@@ -1342,7 +1342,7 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
             runCatching { nm.deleteNotificationChannel(LEGACY_CHANNEL_ID_V1) }
             nm.createNotificationChannel(
                 NotificationChannel(CHANNEL_ID, "Music playback", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                    description = "Native Bhavya playback controls"
+                    description = "Native Bhavyam playback controls"
                     setShowBadge(false)
                     setSound(null, null)
                     enableVibration(false)

@@ -74,7 +74,7 @@ data class TrackMiniTrayData(
     val album: String? = null,
     val artworkUrl: String? = null,
     val videoId: String? = null,
-    val sourceLabel: String = "Bhavya",
+    val sourceLabel: String = "Bhavyam",
     val onPlay: (() -> Unit)? = null,
 ) {
     fun toPlayable(): PlayableTrack = PlayableTrack(

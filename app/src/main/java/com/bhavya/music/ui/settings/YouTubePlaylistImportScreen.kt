@@ -465,7 +465,7 @@ fun YouTubePlaylistImportScreen(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
-                                    "Paste any YouTube or YouTube Music playlist URL. Bhavya resolves every track — no 100-song cap, full playlists import completely.",
+                                    "Paste any YouTube or YouTube Music playlist URL. Bhavyam resolves every track — no 100-song cap, full playlists import completely.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )

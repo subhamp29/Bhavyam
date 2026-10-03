@@ -689,7 +689,7 @@ class SettingsViewModel @Inject constructor(
             } catch (e: Exception) { null }
             val mirrorCount = playlistRepository.publicMirrorPlaylistCount(content)
             if (backup == null && mirrorCount == null) {
-                _uiState.update { it.copy(toastMessage = "That isn't a Bhavya backup or playlist JSON") }
+                _uiState.update { it.copy(toastMessage = "That isn't a Bhavyam backup or playlist JSON") }
                 return@launchSettingsAction
             }
             _uiState.update {
@@ -758,8 +758,8 @@ class SettingsViewModel @Inject constructor(
                     kotlinx.coroutines.delay(900)
                     onComplete()
                 }
-                RestoreResult.UnsupportedSchema -> _uiState.update { it.copy(showRestoreConfirm = false, toastMessage = "This backup was made with a newer version of Bhavya") }
-                RestoreResult.InvalidFile -> _uiState.update { it.copy(showRestoreConfirm = false, toastMessage = "That file doesn't look like a Bhavya backup") }
+                RestoreResult.UnsupportedSchema -> _uiState.update { it.copy(showRestoreConfirm = false, toastMessage = "This backup was made with a newer version of Bhavyam") }
+                RestoreResult.InvalidFile -> _uiState.update { it.copy(showRestoreConfirm = false, toastMessage = "That file doesn't look like a Bhavyam backup") }
                 is RestoreResult.Failed -> _uiState.update { it.copy(showRestoreConfirm = false, toastMessage = "Restore failed: ${result.message}") }
             }
         }
@@ -788,7 +788,7 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun buildDiagnosticsReport(): String = withContext(Dispatchers.IO) {
         val sb = StringBuilder()
-        sb.appendLine("Bhavya diagnostics")
+        sb.appendLine("Bhavyam diagnostics")
         sb.appendLine("time=${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())}")
         val versionName = runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName

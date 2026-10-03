@@ -2198,7 +2198,7 @@ private fun FullPlayer(
                             if (currentTab == FullPlayerTab.LYRICS) {
                                 "${track.title} • ${track.artist}"
                             } else {
-                                state.sourceLabel.takeIf { it.isNotBlank() } ?: "Bhavya"
+                                state.sourceLabel.takeIf { it.isNotBlank() } ?: "Bhavyam"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.70f),
