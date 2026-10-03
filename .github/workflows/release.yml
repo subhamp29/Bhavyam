@@ -194,7 +194,26 @@ jobs:
           RELEASE_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD || secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.ALIAS || secrets.RELEASE_KEY_ALIAS || 'release_key' }}
           RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease assembleRawRelease --stacktrace
+        run: |
+          set +e
+          ./gradlew assembleRelease assembleRawRelease --stacktrace 2>&1 | tee build-android10.log
+          BUILD_STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "$BUILD_STATUS" -ne 0 ]; then
+            # Re-surface the cause as step annotations. The raw log needs repo
+            # admin to download over the API, so without this a red build is only
+            # actionable to someone who can open the run in a browser.
+            echo "::group::Release build failure detail"
+            grep -nE "^(e: |.*: error:|.* error: |.*FAILED$|FAILURE: |\* What went wrong:|Execution failed for task|> Task .* FAILED)" build-android10.log \
+              | tail -n 10 \
+              | cut -c1-900 \
+              | while IFS= read -r LINE; do
+                  echo "::error title=Gradle failure::${LINE//'%'/'%25'}"
+                done
+            echo "::endgroup::"
+            exit "$BUILD_STATUS"
+          fi
+          echo "Release APKs built."
 
       - name: Sign Release APK with Custom Key (Optional)
         if: env.SIGNING_KEY != ''
