@@ -1,57 +1,6 @@
 # Changelog
 
-## [4.2.2] - 2026-09-27
-
-### Added
-- **System Audio Effects mode (Experimental, default OFF):** publishes the audio session for external equalizer apps and OEM Dolby, flattens in-app DSP airtight on mixer routes, auto-suspends on bit-perfect / USB exclusive.
-- **Diagnostics capture:** crash-guard log and startup trail included in the diagnostics export; startup stage breadcrumbs for instant-kill diagnosis.
-
-### Fixed
-- **Settings organization:** Equalizer and Studio Clarity moved to Audio → Output & Loudness, liquid glass to Appearance, Experimental reindexed.
-- **Playlist duplication races:** serialized add/remove, auto-suffix same-title siblings, monotonic ids.
-- **Atmos honesty:** JOC-only capability check plus spatial-manifest veto with step-down cascade to stereo / Opus.
-- **Hi-res reporting:** sample-rate driven 24-bit depth inference across resolve, quality pill, signal path, and track details.
-- **Lyrics readability:** lyrics-tab blur boost plus readability veil; adaptive transport row no longer clips Next on small screens.
-- **Build:** missing YouTubeMusicTrack import, composable-safe backdrop guard.
-
-## [4.2.1] - 2026-09-26
-
-### Added
-- **True Bit-Perfect Audio Pipeline:** Introduced true bit-perfect hardware output with native C++ round-to-nearest-even conversion (`lrintf` / `llround`) in `usb-audio-output.cpp`, eliminating 1-LSB negative sample truncation on 24-bit FLAC streams. Added direct C++ integer bit-depth packing to bypass JVM conversion overhead.
-- **Dual-Crystal UAC2 Hardware Clock Switching:** Integrated automatic parsing of UAC2 `CLOCK_SOURCE` and `CLOCK_SELECTOR` descriptors to switch dynamically between 44.1 kHz and 48 kHz oscillator families on supported DACs. Added smart Soxr resampling fallback for single-crystal DACs.
-- **Expanded Lyrics Ecosystem:** Added support for Apple Music, Better Lyrics, Bini, Musixmatch, and SimpMusic lyrics providers, accompanied by TTML Rich Sync syllable parsing and word-by-word karaoke line splitting.
-- **Fluid Artwork Background & Large Widget:** Added animated fluid gradient mesh backgrounds to the player sheet and introduced a new Large Now Playing home screen widget.
-
-### Changed & Improved
-- **Audio Download Matching Precision:** Overhauled the download matching engine to apply strict artist penalties, expected duration validation (within 5 seconds), and direct video ID routing from track menus, preventing cross-artist mismatches during downloads.
-- **Signal Path Diagnostics:** Signal path dialog now displays exact DAC resampled status, original source bit depth (preventing 32-bit float decoder representation from masking track depth), active hardware sample rates, and detailed USB exclusive open failure diagnostics.
-- **Volume & Output Unity Gain:** Removed the restrictive `ignoreStreamMusicMax` cap in `ExclusiveUsbOutput` so 100% volume consistently achieves true 1.0f unity gain.
-
-### Fixed
-- **YouTube Liked Music & Playlist Crash:** Fixed a fatal `LazyColumn` key collision and layout edge-reorder crash when opening connected YouTube playlists (`LM` / `yt_liked`). Replaced unstable keys with synchronized, collision-proof occurrence suffixes and guarded layout info reads during progressive track streaming.
-- **USB Audio Timing & Glitches:** Corrected exclusive output timing to eliminate buzzing, forward-seek audio cutoffs, runaway seekbar animations, and pause spinner hangs.
-- **Player UI Fixes:** Resolved seekbar buffering clock glitches, repeat-one track skipping, and pill button white-out visual issues.
-
-## [4.2.0] - 2026-09-23
-
-### Added
-- **Dolby Atmos Playback:** Added Dolby Atmos playback support for compatible devices and audio configurations, providing an enhanced spatial audio experience.
-- **Enhanced Liquid Glass:** Completely reworked the Liquid Glass system. The previous implementation was primarily a translucent blur effect; the new implementation introduces significantly improved depth, translucency, reflections, layering, highlights, and overall visual polish for a more refined glass experience.
-- **Playlist Downloads:** Added support for downloading complete playlists for offline listening, making it easier to manage and save large collections.
-- **True Bit-Perfect Playback:** Improved bit-perfect playback with untouched DAC routing, preserving the audio output path without unnecessary modification or processing.
-- **YouTube Recommendation Algorithm:** The entire recommendation system has been shifted from Last.fm to YouTube, providing a new recommendation backend while making Last.fm completely optional.
-- **Guest Login:** Added Guest Login, allowing users to use Bhavya without creating or connecting an account.
-- **Native Spotify & Apple Music Playlist Import:** Added native playlist importing from Spotify and Apple Music, allowing users to bring their existing playlists directly into Bhavya.
-
-### Changed & Improved
-- **Playback & Audio Improvements:** Improved playback reliability, audio handling, DAC behavior, and various edge cases across the playback pipeline.
-- **UI & Performance Improvements:** Refined multiple parts of the interface with improved responsiveness, animations, visual consistency, and overall performance.
-- **Under-the-Hood Improvements:** A large number of architectural, performance, reliability, and quality-of-life improvements have been made throughout the app.
-
-### Fixed
-- **Stability & Bug Fixes:** Fixed numerous reported issues across playback, downloads, recommendations, authentication, UI, and background behavior.
-
-## Unreleased
+## [1.2] - 2026-10-06
 
 ### Added
 - **One-tap "Save album to library" on the album detail screen (#79).**
@@ -225,6 +174,57 @@
   `app/src/main/java/com/bhavya/app/MainActivity.kt`
   `app/src/main/java/com/bhavya/app/ui/navigation/AppRouteNavigator.kt`
   `app/src/main/java/com/bhavya/app/ui/navigation/NavGraph.kt`
+
+## [4.2.2] - 2026-09-27
+
+### Added
+- **System Audio Effects mode (Experimental, default OFF):** publishes the audio session for external equalizer apps and OEM Dolby, flattens in-app DSP airtight on mixer routes, auto-suspends on bit-perfect / USB exclusive.
+- **Diagnostics capture:** crash-guard log and startup trail included in the diagnostics export; startup stage breadcrumbs for instant-kill diagnosis.
+
+### Fixed
+- **Settings organization:** Equalizer and Studio Clarity moved to Audio → Output & Loudness, liquid glass to Appearance, Experimental reindexed.
+- **Playlist duplication races:** serialized add/remove, auto-suffix same-title siblings, monotonic ids.
+- **Atmos honesty:** JOC-only capability check plus spatial-manifest veto with step-down cascade to stereo / Opus.
+- **Hi-res reporting:** sample-rate driven 24-bit depth inference across resolve, quality pill, signal path, and track details.
+- **Lyrics readability:** lyrics-tab blur boost plus readability veil; adaptive transport row no longer clips Next on small screens.
+- **Build:** missing YouTubeMusicTrack import, composable-safe backdrop guard.
+
+## [4.2.1] - 2026-09-26
+
+### Added
+- **True Bit-Perfect Audio Pipeline:** Introduced true bit-perfect hardware output with native C++ round-to-nearest-even conversion (`lrintf` / `llround`) in `usb-audio-output.cpp`, eliminating 1-LSB negative sample truncation on 24-bit FLAC streams. Added direct C++ integer bit-depth packing to bypass JVM conversion overhead.
+- **Dual-Crystal UAC2 Hardware Clock Switching:** Integrated automatic parsing of UAC2 `CLOCK_SOURCE` and `CLOCK_SELECTOR` descriptors to switch dynamically between 44.1 kHz and 48 kHz oscillator families on supported DACs. Added smart Soxr resampling fallback for single-crystal DACs.
+- **Expanded Lyrics Ecosystem:** Added support for Apple Music, Better Lyrics, Bini, Musixmatch, and SimpMusic lyrics providers, accompanied by TTML Rich Sync syllable parsing and word-by-word karaoke line splitting.
+- **Fluid Artwork Background & Large Widget:** Added animated fluid gradient mesh backgrounds to the player sheet and introduced a new Large Now Playing home screen widget.
+
+### Changed & Improved
+- **Audio Download Matching Precision:** Overhauled the download matching engine to apply strict artist penalties, expected duration validation (within 5 seconds), and direct video ID routing from track menus, preventing cross-artist mismatches during downloads.
+- **Signal Path Diagnostics:** Signal path dialog now displays exact DAC resampled status, original source bit depth (preventing 32-bit float decoder representation from masking track depth), active hardware sample rates, and detailed USB exclusive open failure diagnostics.
+- **Volume & Output Unity Gain:** Removed the restrictive `ignoreStreamMusicMax` cap in `ExclusiveUsbOutput` so 100% volume consistently achieves true 1.0f unity gain.
+
+### Fixed
+- **YouTube Liked Music & Playlist Crash:** Fixed a fatal `LazyColumn` key collision and layout edge-reorder crash when opening connected YouTube playlists (`LM` / `yt_liked`). Replaced unstable keys with synchronized, collision-proof occurrence suffixes and guarded layout info reads during progressive track streaming.
+- **USB Audio Timing & Glitches:** Corrected exclusive output timing to eliminate buzzing, forward-seek audio cutoffs, runaway seekbar animations, and pause spinner hangs.
+- **Player UI Fixes:** Resolved seekbar buffering clock glitches, repeat-one track skipping, and pill button white-out visual issues.
+
+## [4.2.0] - 2026-09-23
+
+### Added
+- **Dolby Atmos Playback:** Added Dolby Atmos playback support for compatible devices and audio configurations, providing an enhanced spatial audio experience.
+- **Enhanced Liquid Glass:** Completely reworked the Liquid Glass system. The previous implementation was primarily a translucent blur effect; the new implementation introduces significantly improved depth, translucency, reflections, layering, highlights, and overall visual polish for a more refined glass experience.
+- **Playlist Downloads:** Added support for downloading complete playlists for offline listening, making it easier to manage and save large collections.
+- **True Bit-Perfect Playback:** Improved bit-perfect playback with untouched DAC routing, preserving the audio output path without unnecessary modification or processing.
+- **YouTube Recommendation Algorithm:** The entire recommendation system has been shifted from Last.fm to YouTube, providing a new recommendation backend while making Last.fm completely optional.
+- **Guest Login:** Added Guest Login, allowing users to use Bhavya without creating or connecting an account.
+- **Native Spotify & Apple Music Playlist Import:** Added native playlist importing from Spotify and Apple Music, allowing users to bring their existing playlists directly into Bhavya.
+
+### Changed & Improved
+- **Playback & Audio Improvements:** Improved playback reliability, audio handling, DAC behavior, and various edge cases across the playback pipeline.
+- **UI & Performance Improvements:** Refined multiple parts of the interface with improved responsiveness, animations, visual consistency, and overall performance.
+- **Under-the-Hood Improvements:** A large number of architectural, performance, reliability, and quality-of-life improvements have been made throughout the app.
+
+### Fixed
+- **Stability & Bug Fixes:** Fixed numerous reported issues across playback, downloads, recommendations, authentication, UI, and background behavior.
 
 ## 2026-09-02 — musaibbhat120605
 

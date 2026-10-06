@@ -518,36 +518,71 @@ fun Modifier.drawInteractiveGlass(
         )
 
 /** Interactive liquidGlass: static surfaces use fixed mid-luminance. */
-@Composable
-fun Modifier.liquidGlass(
-    backdrop: Backdrop,
-    shape: Shape = CircleShape,
-    interactive: Boolean = true,
-    highlight: Highlight = Highlight.Default,
-): Modifier {
-    if (!LocalLiquidGlass.current) {
-        return this
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+    @Composable
+    fun Modifier.liquidGlass(
+        backdrop: Backdrop,
+        shape: Shape = CircleShape,
+        interactive: Boolean = true,
+        highlight: Highlight = Highlight.Default,
+    ): Modifier {
+        if (!LocalLiquidGlass.current) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+        if (!isLiquidGlassBackdropSupported()) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+        val isDark = LocalIsDarkTheme.current
+        val layer = rememberGraphicsLayer()
+        val interaction = rememberGlassInteraction()
+        return this.drawInteractiveGlass(
+            isDark = isDark,
+            backdrop = backdrop,
+            layer = layer,
+            luminanceAnimation = 0.5f,
+            shape = shape,
+            interaction = if (interactive) interaction else null,
+            highlight = highlight,
+        )
     }
-    if (!isLiquidGlassBackdropSupported()) {
-        return this
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+
+    /** Interactive liquidGlass with animated luminance for a depth/parallax effect.
+     *  The luminance value drives blur strength and scrim darkness, creating
+     *  a subtle breathing motion that gives the glass band visual depth. */
+    @Composable
+    fun Modifier.liquidGlass(
+        backdrop: Backdrop,
+        luminanceAnimation: Float,
+        shape: Shape = CircleShape,
+        interactive: Boolean = true,
+        highlight: Highlight = Highlight.Default,
+    ): Modifier {
+        if (!LocalLiquidGlass.current) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+        if (!isLiquidGlassBackdropSupported()) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+        val isDark = LocalIsDarkTheme.current
+        val layer = rememberGraphicsLayer()
+        val interaction = rememberGlassInteraction()
+        return this.drawInteractiveGlass(
+            isDark = isDark,
+            backdrop = backdrop,
+            layer = layer,
+            luminanceAnimation = luminanceAnimation,
+            shape = shape,
+            interaction = if (interactive) interaction else null,
+            highlight = highlight,
+        )
     }
-    val isDark = LocalIsDarkTheme.current
-    val layer = rememberGraphicsLayer()
-    val interaction = rememberGlassInteraction()
-    return this.drawInteractiveGlass(
-        isDark = isDark,
-        backdrop = backdrop,
-        layer = layer,
-        luminanceAnimation = 0.5f,
-        shape = shape,
-        interaction = if (interactive) interaction else null,
-        highlight = highlight,
-    )
-}
 
 /** Interactive liquidGlass overload for luminance-sampling surfaces (MiniPlayer, nav capsule). */
 @Composable
