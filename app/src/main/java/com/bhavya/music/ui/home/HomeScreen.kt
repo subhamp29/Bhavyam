@@ -34,6 +34,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -94,15 +100,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
-
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
@@ -590,6 +592,13 @@ private fun LocalStatsBanner(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun rememberCarouselFlingBehavior(
+    lazyListState: LazyListState,
+    @Suppress("UNUSED_PARAMETER") itemWidthDp: Dp = 84.dp,
+) = rememberSnapFlingBehavior(lazyListState)
+
 @Composable
 private fun PodiumSection(
     artists: List<HomeArtistItem>,
@@ -600,9 +609,13 @@ private fun PodiumSection(
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (artists.isNotEmpty()) {
             PodiumSectionTitle("Top Artists")
+            val artistsListState = rememberLazyListState()
+            val snapFlingBehavior = rememberCarouselFlingBehavior(artistsListState, 84.dp)
             LazyRow(
+                state = artistsListState,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 2.dp),
+                flingBehavior = snapFlingBehavior,
             ) {
                 items(artists, key = { "artist_${it.name.lowercase()}" }) { artist ->
                     ArtistPodiumCard(artist)
@@ -611,9 +624,13 @@ private fun PodiumSection(
         }
         if (albums.isNotEmpty()) {
             PodiumSectionTitle("Top Albums")
+            val albumsListState = rememberLazyListState()
+            val snapFlingBehavior = rememberCarouselFlingBehavior(albumsListState, 96.dp)
             LazyRow(
+                state = albumsListState,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 2.dp),
+                flingBehavior = snapFlingBehavior,
             ) {
                 items(albums, key = { "album_${it.artist.lowercase()}_${it.name.lowercase()}" }) { album ->
                     AlbumPodiumCard(album)

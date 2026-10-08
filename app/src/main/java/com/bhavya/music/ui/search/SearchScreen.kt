@@ -439,7 +439,7 @@ fun SearchScreen(
                         WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                     )
                     .padding(horizontal = 16.dp)
-                    .padding(top = 6.dp, bottom = 10.dp),
+                    .padding(top = 6.dp, bottom = 4.dp),
             ) {
                 // Top Search Input Row
                 Row(

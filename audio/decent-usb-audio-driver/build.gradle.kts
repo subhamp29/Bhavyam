@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.decent.usbaudio"
     compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         minSdk = 24
@@ -26,7 +27,10 @@ android {
     // the loadLibrary call had no .so to find and threw UnsatisfiedLinkError on
     // first use of the class.
     externalNativeBuild {
-        cmake { path("src/main/jni/CMakeLists.txt") }
+        cmake {
+            path("src/main/jni/CMakeLists.txt")
+            version = "3.31.6"
+        }
     }
 
     compileOptions {
