@@ -267,7 +267,7 @@ object DatabaseModule {
             database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remotePlaylistId TEXT")
             database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remoteArtworkUrl TEXT")
             database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remoteTrackCount INTEGER")
-            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_playlists_systemKey ON saved_playlists(systemKey) WHERE systemKey IS NOT NULL")
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_saved_playlists_systemKey ON saved_playlists(systemKey) WHERE systemKey IS NOT NULL")
 
             // 2. Merge duplicates: keep OLDEST "Liked Songs" row, delete rest
             database.execSQL(
