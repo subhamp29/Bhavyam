@@ -52,6 +52,8 @@ data class SavedPlaylist(
     val remotePlaylistId: String? = null,
     val remoteArtworkUrl: String? = null,
     val remoteTrackCount: Int? = null,
+    /** Non-null for system playlists (built-in Liked Songs, imported YT playlists). */
+    val systemKey: String? = null,
 )
 
 val SavedPlaylist.isYouTubeOnly: Boolean
@@ -175,6 +177,12 @@ class PlaylistRepository @Inject constructor(
             tracksJson = json.encodeToString(playableTracks.map { it.toStored() }),
             createdAtMillis = System.currentTimeMillis(),
             discoverSignature = discoverSignature,
+            customCoverUri = null,
+            isPinned = false,
+            systemKey = null,
+            remotePlaylistId = null,
+            remoteArtworkUrl = null,
+            remoteTrackCount = null,
         )
         try {
             dao.upsert(entity)
@@ -199,6 +207,52 @@ class PlaylistRepository @Inject constructor(
         }
 
         saved
+    }
+
+    /**
+     * Upserts a remote YouTube playlist by systemKey (e.g., "yt_LM" for Liked Music).
+     * Used by YtMusicLibraryManager to keep the local mirror in sync without creating duplicates.
+     */
+    suspend fun saveOrUpdateRemote(
+        systemKey: String,
+        title: String,
+        subtitle: String,
+        tracks: List<GeneratedTrack>,
+        remotePlaylistId: String,
+        remoteArtworkUrl: String?,
+        remoteTrackCount: Int?,
+    ): SavedPlaylist = saveMutex.withLock {
+        val existing = runCatching { dao.getBySystemKey(systemKey) }.getOrNull()
+        val tracksJson = json.encodeToString(tracks.map { it.toStored() })
+        val now = System.currentTimeMillis()
+        val entity = existing?.let { e ->
+            e.copy(
+                title = title,
+                subtitle = subtitle,
+                tracksJson = tracksJson,
+                remotePlaylistId = remotePlaylistId,
+                remoteArtworkUrl = remoteArtworkUrl,
+                remoteTrackCount = remoteTrackCount,
+            )
+        } ?: SavedPlaylistEntity(
+            id = maxOf(now, (runCatching { getAll() }.getOrDefault(emptyList()).maxOfOrNull { it.id } ?: 0L) + 1L),
+            title = title,
+            subtitle = subtitle,
+            mode = "youtube_remote",
+            tracksJson = tracksJson,
+            createdAtMillis = now,
+            remotePlaylistId = remotePlaylistId,
+            remoteArtworkUrl = remoteArtworkUrl,
+            remoteTrackCount = remoteTrackCount,
+            systemKey = systemKey,
+            isPinned = false,
+            discoverSignature = null,
+            customCoverUri = null,
+        )
+        dao.upsert(entity)
+        syncPublicMirror()
+        _changes.tryEmit(Unit)
+        entity.toDomain()
     }
 
     private fun sameOrderedTrackIdentity(
@@ -341,31 +395,33 @@ class PlaylistRepository @Inject constructor(
     suspend fun getLikedSongs(): SavedPlaylist? =
         getAll().firstOrNull { it.mode == LIKED_SONGS_MODE }
 
-    /** Creates the built-in local playlist only when it is genuinely absent. */
+    /** Creates the built-in local playlist only when it is genuinely absent.
+     * Idempotent: uses INSERT OR IGNORE on systemKey to avoid races. */
     suspend fun ensureLikedSongs(): SavedPlaylist = likedSongsMutex.withLock {
-        getLikedSongs()?.let { return@withLock it }
-        getAll().firstOrNull { it.title.equals(LIKED_SONGS_TITLE, ignoreCase = true) }?.let { legacy ->
-            val entity = dao.getById(legacy.id)
-            if (entity != null) {
-                val adopted = entity.copy(
-                    title = LIKED_SONGS_TITLE,
-                    subtitle = "Songs you like in Bhavyam",
-                    mode = LIKED_SONGS_MODE,
-                    isPinned = true,
-                )
-                dao.upsert(adopted)
-                syncPublicMirror()
-                _changes.tryEmit(Unit)
-                return@withLock adopted.toDomain()
-            }
-        }
-        val created = save(
+        // Fast path: check if already exists by systemKey
+        runCatching { dao.getBySystemKey("liked_songs") }
+            .getOrNull()
+            ?.toDomain()
+            ?.let { return@withLock it }
+
+        // Insert or get existing in a transaction
+        val entity = SavedPlaylistEntity(
+            id = maxOf(System.currentTimeMillis(), (runCatching { getAll() }.getOrDefault(emptyList()).maxOfOrNull { it.id } ?: 0L) + 1L),
             title = LIKED_SONGS_TITLE,
             subtitle = "Songs you like in Bhavyam",
             mode = LIKED_SONGS_MODE,
-            tracks = emptyList(),
+            tracksJson = json.encodeToString(emptyList<GeneratedTrack>()),
+            createdAtMillis = System.currentTimeMillis(),
+            isPinned = true,
+            systemKey = "liked_songs",
+            remotePlaylistId = null,
+            remoteArtworkUrl = null,
+            remoteTrackCount = null,
         )
-        setPinned(created.id, true) ?: created.copy(isPinned = true)
+        dao.upsert(entity)
+        syncPublicMirror()
+        _changes.tryEmit(Unit)
+        entity.toDomain()
     }
 
     /** Internal sync write: unlike normal editing, this also updates generated/imported playlists. */
@@ -442,6 +498,10 @@ class PlaylistRepository @Inject constructor(
             discoverSignature = discoverSignature,
             customCoverUri = customCoverUri,
             isPinned = isPinned,
+            remotePlaylistId = remotePlaylistId,
+            remoteArtworkUrl = remoteArtworkUrl,
+            remoteTrackCount = remoteTrackCount,
+            systemKey = systemKey,
         )
     }
 
@@ -462,6 +522,7 @@ class PlaylistRepository @Inject constructor(
                     discoverSignature = entry.discoverSignature,
                     customCoverUri = entry.customCoverUri,
                     isPinned = entry.isPinned,
+                    systemKey = entry.systemKey,
                 )
             }.sortedByDescending { it.createdAtMillis }
         } catch (error: CancellationException) {

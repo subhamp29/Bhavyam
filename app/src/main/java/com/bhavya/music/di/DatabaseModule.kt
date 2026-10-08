@@ -260,6 +260,36 @@ object DatabaseModule {
         }
     }
 
+    private val migration13To14 = object : Migration(13, 14) {
+        override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+            // 1. Add systemKey column + unique index
+            database.execSQL("ALTER TABLE saved_playlists ADD COLUMN systemKey TEXT")
+            database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remotePlaylistId TEXT")
+            database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remoteArtworkUrl TEXT")
+            database.execSQL("ALTER TABLE saved_playlists ADD COLUMN remoteTrackCount INTEGER")
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_playlists_systemKey ON saved_playlists(systemKey) WHERE systemKey IS NOT NULL")
+
+            // 2. Merge duplicates: keep OLDEST "Liked Songs" row, delete rest
+            database.execSQL(
+                """
+                DELETE FROM saved_playlists
+                WHERE id IN (
+                    SELECT id FROM (
+                        SELECT id,
+                               ROW_NUMBER() OVER (PARTITION BY title COLLATE NOCASE ORDER BY createdAtMillis ASC) as rn
+                        FROM saved_playlists
+                        WHERE title = 'Liked Songs'
+                    )
+                    WHERE rn > 1
+                )
+                """.trimIndent()
+            )
+
+            // 3. Set systemKey on the survivor
+            database.execSQL("UPDATE saved_playlists SET systemKey = 'liked_songs' WHERE mode = 'liked' AND title = 'Liked Songs' AND systemKey IS NULL")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
@@ -279,6 +309,7 @@ object DatabaseModule {
                 migration10To11,
                 migration11To12,
                 migration12To13,
+                migration13To14,
             )
             .build()
 

@@ -83,6 +83,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -91,6 +93,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bhavya.music.R
 import com.bhavya.music.data.generate.GeneratedTrack
 import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.data.playlist.LIKED_SONGS_MODE
@@ -682,9 +685,10 @@ private fun PlaylistCard(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     if (playlist.isYouTubeOnly) {
-                        "YouTube Music • ${playlist.remoteTrackCount?.let { "$it tracks" } ?: "Connected account"}"
+                        val count = playlist.remoteTrackCount ?: 0
+                        "YouTube Music • ${pluralStringResource(R.plurals.playlist_track_count, count)}"
                     } else {
-                        "${playlist.tracks.size} tracks \u00b7 ${formatDate(playlist.createdAtMillis)}"
+                        "${pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size)} \u00b7 ${formatDate(playlist.createdAtMillis)}"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -782,11 +786,13 @@ private fun PlaylistCard(
                             onClick = { onExport(); menuExpanded = false },
                         )
                     }
-                    DropdownMenuItem(
-                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                        leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                        onClick = { onDelete(); menuExpanded = false },
-                    )
+                    if (playlist.systemKey == null) {
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = { onDelete(); menuExpanded = false },
+                        )
+                    }
                 }
             }
         }

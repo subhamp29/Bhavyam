@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         DownloadedTrackEntity::class,
         SongPlayStatsEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

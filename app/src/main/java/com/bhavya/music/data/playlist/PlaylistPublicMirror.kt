@@ -29,6 +29,7 @@ data class PlaylistMirrorEntry(
     val discoverSignature: String? = null,
     val customCoverUri: String? = null,
     val isPinned: Boolean = false,
+    val systemKey: String? = null,
 )
 
 @Serializable
@@ -121,6 +122,7 @@ class PlaylistPublicMirror @Inject constructor(
                     discoverSignature = entity.discoverSignature,
                     customCoverUri = entity.customCoverUri,
                     isPinned = entity.isPinned,
+                    systemKey = entity.systemKey,
                 )
             },
         )
@@ -137,5 +139,6 @@ class PlaylistPublicMirror @Inject constructor(
         discoverSignature = discoverSignature,
         customCoverUri = customCoverUri,
         isPinned = isPinned,
+        systemKey = systemKey,
     )
 }

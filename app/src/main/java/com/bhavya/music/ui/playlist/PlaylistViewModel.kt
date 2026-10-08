@@ -459,6 +459,10 @@ class PlaylistViewModel @Inject constructor(
         val id = _uiState.value.deleteConfirmForPlaylistId ?: return
         viewModelScope.launch {
             val playlist = playlistRepository.getById(id)
+            if (playlist != null && playlist.systemKey != null) {
+                _uiState.update { it.copy(deleteConfirmForPlaylistId = null, toastMessage = "System playlists can't be deleted") }
+                return@launch
+            }
             if (playlist != null && (playlist.isYouTubeOnly || playlist.remotePlaylistId != null)) {
                 val ytId = if (playlist.isYouTubeOnly) playlist.remotePlaylistId ?: playlist.id.toString() else playlist.remotePlaylistId
                 if (ytId != null) {
@@ -479,6 +483,10 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             for (id in ids) {
                 val playlist = playlistRepository.getById(id)
+                if (playlist != null && playlist.systemKey != null) {
+                    _uiState.update { it.copy(toastMessage = "System playlists can't be deleted") }
+                    return@launch
+                }
                 if (playlist != null && (playlist.isYouTubeOnly || playlist.remotePlaylistId != null)) {
                     val ytId = if (playlist.isYouTubeOnly) playlist.remotePlaylistId ?: playlist.id.toString() else playlist.remotePlaylistId
                     if (ytId != null) {

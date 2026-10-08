@@ -1,0 +1,140 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :audio:decent-usb-audio-driver
+w: Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':audio:decent-usb-audio-driver' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+Invalid Java installation found at 'C:\Program Files\Java\jre-1.8' (Windows Registry) auto-detected. It will be re-checked in the next build. This might have performance impact if it keeps failing. Run the 'javaToolchains' task for more details.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateNativeSecrets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseBuildConfig UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :audio:decent-usb-audio-driver:preBuild UP-TO-DATE
+> Task :audio:decent-usb-audio-driver:preReleaseBuild UP-TO-DATE
+> Task :audio:decent-usb-audio-driver:processReleaseNavigationResources UP-TO-DATE
+> Task :app:processReleaseNavigationResources FAILED
+
+[Incubating] Problems report is available at: file:///E:/music%20exe/LastWave-Native-main/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:processReleaseNavigationResources'.
+> A build operation failed.
+      The contents of the immutable workspace 'C:\Users\siddhartha mahapatra\.gradle\caches\9.3.1\transforms\7f20aafffd31403b5e8a37e28661715b\workspace' have been modified. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption.
+  outputDirectory:
+   - transformed (Directory, b071f4e15463ec141a658ad2e797be29)
+     - oboe-1.10.0 (Directory, 68c2478dad42b383027a43f75ed36b36)
+       - AndroidManifest.xml (RegularFile, 674c9072c71f7d84cff6b4b392a626d6)
+       - prefab (Directory, f6044bebedac7ecd6852ef6ca4f927f7)
+         - modules (Directory, ef30b98fc4e9a333f38a5edf6ed85070)
+           - oboe (Directory, 96e2aa75aa86a4bec86220caeba51577)
+             - include (Directory, 5c2a18bc7390f882c8ef9a34ef14e61f)
+               - oboe (Directory, 2b6e71dc08882ffebce4d907c860b451)
+                 - AudioStream.h (RegularFile, 650db645ef66ac6349ca0715bfe2e8a1)
+                 - AudioStreamBase.h (RegularFile, a7f8ce94b33ba428561ea7ce53a7dc9b)
+                 - AudioStreamBuilder.h (RegularFile, 63e715b8ef89de5c938cfe253dcc33b4)
+                 - AudioStreamCallback.h (RegularFile, b26e1b789106f8aafbfff7c8108bbfa8)
+                 - Definitions.h (RegularFile, 032455e5af95c4712e57929cdb253f44)
+                 - FifoBuffer.h (RegularFile, 840903a0ecd1db952971dfcabb0dfa11)
+                 - FifoControllerBase.h (RegularFile, c5aa9f8180525c04d88b1a807311ebaa)
+                 - FullDuplexStream.h (RegularFile, e2bad9875c69165199d38b3fcc1624d8)
+                 - LatencyTuner.h (RegularFile, f07453ed678d13fc9c109e055d62ee62)
+                 - Oboe.h (RegularFile, 9c93bb6d433b8ad1722d6016d9bca2e8)
+                 - OboeExtensions.h (RegularFile, 4bd6fa8a441fa1b86dc41a45d5d47c56)
+                 - ResultWithValue.h (RegularFile, aef26069ea90e165dc96bb8801223e4a)
+                 - StabilizedCallback.h (RegularFile, 76a24db437094f4136007a8434ccfa79)
+                 - Utilities.h (RegularFile, 32c2ee1e2c75e0cfcc1b4b442efb0030)
+                 - Version.h (RegularFile, 9fe2fe1e59362182af4a2c77ac152eae)
+             - libs (Directory, 5ae0467bfd88eece23021a95d520b03a)
+               - android.arm64-v8a (Directory, a50771ffd85d5e5a5d61aa6f17dab98d)
+                 - abi.json (RegularFile, bb81e0d24b30f444636e6f7118dc668f)
+                 - liboboe.so (RegularFile, a2623b902d3fe4997ae928e60b38baa4)
+               - android.armeabi-v7a (Directory, fd8d4b68d95f1a31b76f0e45f06b672c)
+                 - abi.json (RegularFile, 7b01cb878f2ce5f996bb5d61b43ae85f)
+                 - liboboe.so (RegularFile, 641ab885de75287fb5550e2c4667e450)
+               - android.x86 (Directory, 8cf1192170c31efab4843ed252d94ec4)
+                 - abi.json (RegularFile, 9bd7c51293ef861a6808d563743c2396)
+                 - liboboe.so (RegularFile, a45c9f40acc6791295bfa80f81c33634)
+               - android.x86_64 (Directory, c1fe588eefe1534fbc17904c60365179)
+                 - abi.json (RegularFile, c954e94e9afcb5596ee5d7bbba2ed281)
+                 - liboboe.so (RegularFile, a98a65b7e2209d562d34d6f1111aa1ec)
+             - module.json (RegularFile, 11c6152d159e208d3f2a2903482de300)
+         - prefab.json (RegularFile, 350fc12d65d79712239934addea953f2)
+  
+  resultsFile:
+   - results.bin (RegularFile, ff7fcac8ce9d3744749e2044f1681703)
+
+   > The contents of the immutable workspace 'C:\Users\siddhartha mahapatra\.gradle\caches\9.3.1\transforms\7f20aafffd31403b5e8a37e28661715b\workspace' have been modified. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption.
+     outputDirectory:
+      - transformed (Directory, b071f4e15463ec141a658ad2e797be29)
+        - oboe-1.10.0 (Directory, 68c2478dad42b383027a43f75ed36b36)
+          - AndroidManifest.xml (RegularFile, 674c9072c71f7d84cff6b4b392a626d6)
+          - prefab (Directory, f6044bebedac7ecd6852ef6ca4f927f7)
+            - modules (Directory, ef30b98fc4e9a333f38a5edf6ed85070)
+              - oboe (Directory, 96e2aa75aa86a4bec86220caeba51577)
+                - include (Directory, 5c2a18bc7390f882c8ef9a34ef14e61f)
+                  - oboe (Directory, 2b6e71dc08882ffebce4d907c860b451)
+                    - AudioStream.h (RegularFile, 650db645ef66ac6349ca0715bfe2e8a1)
+                    - AudioStreamBase.h (RegularFile, a7f8ce94b33ba428561ea7ce53a7dc9b)
+                    - AudioStreamBuilder.h (RegularFile, 63e715b8ef89de5c938cfe253dcc33b4)
+                    - AudioStreamCallback.h (RegularFile, b26e1b789106f8aafbfff7c8108bbfa8)
+                    - Definitions.h (RegularFile, 032455e5af95c4712e57929cdb253f44)
+                    - FifoBuffer.h (RegularFile, 840903a0ecd1db952971dfcabb0dfa11)
+                    - FifoControllerBase.h (RegularFile, c5aa9f8180525c04d88b1a807311ebaa)
+                    - FullDuplexStream.h (RegularFile, e2bad9875c69165199d38b3fcc1624d8)
+                    - LatencyTuner.h (RegularFile, f07453ed678d13fc9c109e055d62ee62)
+                    - Oboe.h (RegularFile, 9c93bb6d433b8ad1722d6016d9bca2e8)
+                    - OboeExtensions.h (RegularFile, 4bd6fa8a441fa1b86dc41a45d5d47c56)
+                    - ResultWithValue.h (RegularFile, aef26069ea90e165dc96bb8801223e4a)
+                    - StabilizedCallback.h (RegularFile, 76a24db437094f4136007a8434ccfa79)
+                    - Utilities.h (RegularFile, 32c2ee1e2c75e0cfcc1b4b442efb0030)
+                    - Version.h (RegularFile, 9fe2fe1e59362182af4a2c77ac152eae)
+                - libs (Directory, 5ae0467bfd88eece23021a95d520b03a)
+                  - android.arm64-v8a (Directory, a50771ffd85d5e5a5d61aa6f17dab98d)
+                    - abi.json (RegularFile, bb81e0d24b30f444636e6f7118dc668f)
+                    - liboboe.so (RegularFile, a2623b902d3fe4997ae928e60b38baa4)
+                  - android.armeabi-v7a (Directory, fd8d4b68d95f1a31b76f0e45f06b672c)
+                    - abi.json (RegularFile, 7b01cb878f2ce5f996bb5d61b43ae85f)
+                    - liboboe.so (RegularFile, 641ab885de75287fb5550e2c4667e450)
+                  - android.x86 (Directory, 8cf1192170c31efab4843ed252d94ec4)
+                    - abi.json (RegularFile, 9bd7c51293ef861a6808d563743c2396)
+                    - liboboe.so (RegularFile, a45c9f40acc6791295bfa80f81c33634)
+                  - android.x86_64 (Directory, c1fe588eefe1534fbc17904c60365179)
+                    - abi.json (RegularFile, c954e94e9afcb5596ee5d7bbba2ed281)
+                    - liboboe.so (RegularFile, a98a65b7e2209d562d34d6f1111aa1ec)
+                - module.json (RegularFile, 11c6152d159e208d3f2a2903482de300)
+            - prefab.json (RegularFile, 350fc12d65d79712239934addea953f2)
+     
+     resultsFile:
+      - results.bin (RegularFile, ff7fcac8ce9d3744749e2044f1681703)
+
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 30s
+6 actionable tasks: 1 executed, 5 up-to-date

@@ -1,0 +1,269 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 112204482671,
+      "run_id": 37444057571,
+      "workflow_name": "Publish Selected Release",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/subhamp29/Bhavyam/actions/runs/37444057571",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU4iKEM8AAAAaH-iIbw",
+      "head_sha": "15b33a3daf97807d8652c3c2b4d0d306b57db7f7",
+      "url": "https://api.github.com/repos/subhamp29/Bhavyam/actions/jobs/112204482671",
+      "html_url": "https://github.com/subhamp29/Bhavyam/actions/runs/37444057571/job/112204482671",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-06T09:35:53Z",
+      "started_at": "2026-10-06T09:35:56Z",
+      "completed_at": "2026-10-06T09:36:03Z",
+      "name": "Verify Release Is Installable In-App",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T09:35:57Z",
+          "completed_at": "2026-10-06T09:35:57Z"
+        },
+        {
+          "name": "Checkout repository metadata",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T09:35:57Z",
+          "completed_at": "2026-10-06T09:35:59Z"
+        },
+        {
+          "name": "Resolve release tag to a commit SHA",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T09:35:59Z",
+          "completed_at": "2026-10-06T09:35:59Z"
+        },
+        {
+          "name": "Checkout the exact release commit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T09:35:59Z",
+          "completed_at": "2026-10-06T09:36:00Z"
+        },
+        {
+          "name": "Enforce tag/versionName agreement and a versionCode bump",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-06T09:36:00Z",
+          "completed_at": "2026-10-06T09:36:00Z"
+        },
+        {
+          "name": "Post Checkout the exact release commit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T09:36:00Z",
+          "completed_at": "2026-10-06T09:36:00Z"
+        },
+        {
+          "name": "Post Checkout repository metadata",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-06T09:36:00Z",
+          "completed_at": "2026-10-06T09:36:00Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-06T09:36:00Z",
+          "completed_at": "2026-10-06T09:36:00Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/subhamp29/Bhavyam/check-runs/112204482671",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000544,
+      "runner_name": "GitHub Actions 1000000544",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 112204548270,
+      "run_id": 37444057571,
+      "workflow_name": "Publish Selected Release",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/subhamp29/Bhavyam/actions/runs/37444057571",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU4iKEM8AAAAaH-mIrg",
+      "head_sha": "15b33a3daf97807d8652c3c2b4d0d306b57db7f7",
+      "url": "https://api.github.com/repos/subhamp29/Bhavyam/actions/jobs/112204548270",
+      "html_url": "https://github.com/subhamp29/Bhavyam/actions/runs/37444057571/job/112204548270",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-06T09:36:04Z",
+      "started_at": "2026-10-06T09:36:07Z",
+      "completed_at": "2026-10-06T09:43:40Z",
+      "name": "Build & Publish Release",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T09:36:08Z",
+          "completed_at": "2026-10-06T09:36:12Z"
+        },
+        {
+          "name": "Checkout code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T09:36:12Z",
+          "completed_at": "2026-10-06T09:36:13Z"
+        },
+        {
+          "name": "Set up JDK 17",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T09:36:13Z",
+          "completed_at": "2026-10-06T09:36:14Z"
+        },
+        {
+          "name": "Grant Gradle execute permission",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T09:36:14Z",
+          "completed_at": "2026-10-06T09:36:14Z"
+        },
+        {
+          "name": "Preflight - release signing material",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-06T09:36:14Z",
+          "completed_at": "2026-10-06T09:36:14Z"
+        },
+        {
+          "name": "Build Android 10 Release APKs (compressed + raw)",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-10-06T09:36:14Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Sign Release APK with Custom Key (Optional)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Sign Raw APK with Custom Key (Optional)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Stage Android 10 Final APKs",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Build Android 7.0 Legacy APK (compressed)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Sign Android 7 Legacy APK with Custom Key (Optional)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 11,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Stage Android 7 Final APK",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Verify APK signatures + publish checksums",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Prepare Release Notes & Compatibility Notice",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 14,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Create GitHub Release",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Post Set up JDK 17",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Post Checkout code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-06T09:43:36Z",
+          "completed_at": "2026-10-06T09:43:36Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/subhamp29/Bhavyam/check-runs/112204548270",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000545,
+      "runner_name": "GitHub Actions 1000000545",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

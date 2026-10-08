@@ -2,6 +2,7 @@ package com.bhavya.music.data.local.db
 
 import androidx.room.Dao
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Transaction
@@ -20,7 +21,10 @@ import androidx.room.Upsert
  * order-preserving track-set signature, used to detect "this exact Discover
  * feed is already saved" — see _discTrackSignature in the original).
  */
-@Entity(tableName = "saved_playlists")
+@Entity(
+    tableName = "saved_playlists",
+    indices = [Index(value = ["systemKey"], unique = true)]
+)
 data class SavedPlaylistEntity(
     @PrimaryKey val id: Long,
     val title: String,
@@ -31,6 +35,10 @@ data class SavedPlaylistEntity(
     val discoverSignature: String? = null,
     val customCoverUri: String? = null,
     val isPinned: Boolean = false,
+    val systemKey: String? = null,
+    val remotePlaylistId: String? = null,
+    val remoteArtworkUrl: String? = null,
+    val remoteTrackCount: Int? = null,
 )
 
 @Dao
@@ -42,6 +50,9 @@ interface SavedPlaylistDao {
 
     @Query("SELECT * FROM saved_playlists WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): SavedPlaylistEntity?
+
+    @Query("SELECT * FROM saved_playlists WHERE systemKey = :systemKey LIMIT 1")
+    suspend fun getBySystemKey(systemKey: String): SavedPlaylistEntity?
 
     @Upsert
     suspend fun upsert(entity: SavedPlaylistEntity)

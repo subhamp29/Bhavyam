@@ -180,7 +180,7 @@ class YtMusicLibraryManager @Inject constructor(
         }
     }
 
-    private fun publish(account: List<YouTubePlaylistSummary>): List<YouTubePlaylistSummary> {
+    private suspend fun publish(account: List<YouTubePlaylistSummary>): List<YouTubePlaylistSummary> {
         // Keep the complete account snapshot. Visibility is a separate,
         // persisted projection, so refresh/import/sync cannot reset it.
         // The account's Liked Music (LM) is not returned by
@@ -217,7 +217,23 @@ class YtMusicLibraryManager @Inject constructor(
                     ?: previousSummary?.trackCountText,
             )
         }
+        // Upsert remote playlists to Room via systemKey
         val allRemote = stableAccount.map(::summaryToPlaylist)
+        applicationScope.launch {
+            allRemote.forEach { playlist ->
+                playlist.remotePlaylistId?.let { remoteId ->
+                    playlistRepository.saveOrUpdateRemote(
+                        systemKey = "yt_$remoteId",
+                        title = playlist.title,
+                        subtitle = playlist.subtitle,
+                        tracks = playlist.tracks,
+                        remotePlaylistId = remoteId,
+                        remoteArtworkUrl = playlist.remoteArtworkUrl,
+                        remoteTrackCount = playlist.remoteTrackCount,
+                    )
+                }
+            }
+        }
         _accountPlaylists.value = stableAccount
         remoteIdsByLocalId.clear()
         allRemote.forEach { playlist ->
@@ -275,6 +291,7 @@ class YtMusicLibraryManager @Inject constructor(
                 remotePlaylistId = cached.remotePlaylistId,
                 remoteArtworkUrl = cached.remoteArtworkUrl,
                 remoteTrackCount = cached.remoteTrackCount,
+                systemKey = cached.remotePlaylistId?.let { "yt_$it" },
             )
         } catch (_: Exception) {
             null
@@ -370,6 +387,7 @@ class YtMusicLibraryManager @Inject constructor(
                 remotePlaylistId = remoteId,
                 remoteArtworkUrl = partialArtwork,
                 remoteTrackCount = null,
+                systemKey = "yt_$remoteId",
             )
             details[localId] = partialPlaylist
             onUpdate?.invoke(partialPlaylist)
@@ -399,6 +417,7 @@ class YtMusicLibraryManager @Inject constructor(
             // null so loadDetail treats this as refreshable instead of
             // serving a truncated snapshot as final.
             remoteTrackCount = trackCount.takeIf { result.isComplete },
+            systemKey = "yt_$remoteId",
         )
         details[localId] = playlist
         if (result.isComplete) {
@@ -623,6 +642,7 @@ class YtMusicLibraryManager @Inject constructor(
             summary.trackCountText?.let(::parseTrackCount)
         }
         val artwork = summary.artworkUrl ?: knownArtworkByRemoteId[summary.id]
+        val systemKey = "yt_${summary.id}"
         return SavedPlaylist(
             id = id,
             title = summary.title,
@@ -633,6 +653,7 @@ class YtMusicLibraryManager @Inject constructor(
             remotePlaylistId = summary.id,
             remoteArtworkUrl = artwork,
             remoteTrackCount = count,
+            systemKey = systemKey,
         )
     }
 

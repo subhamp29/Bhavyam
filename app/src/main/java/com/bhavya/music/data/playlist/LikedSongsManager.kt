@@ -37,12 +37,6 @@ class LikedSongsManager @Inject constructor(
             try {
                 bootstrapForInstalledVersion()
                 refresh()
-                // One-time heal for duplicates stacked by older builds (weak
-                // key dedup + unlocked YT-liked import). No-op when clean.
-                runCatching { dedupe() }
-                    .onSuccess { removed ->
-                        if (removed > 0) android.util.Log.i("LikedSongsManager", "Healed $removed duplicate liked tracks")
-                    }
                 playlistRepository.changes.collect { refresh() }
             } catch (cancellation: CancellationException) {
                 throw cancellation
@@ -113,29 +107,6 @@ class LikedSongsManager @Inject constructor(
         playlistRepository.replaceTracksForSync(liked.id, (liked.tracks + tracks).distinctSongs())
         refresh()
         true
-    }
-
-    /**
-     * One-time heal: collapses pre-existing duplicates (same videoId or same
-     * normalized title+artist) keeping the first occurrence. Best-effort —
-     * never throws, so startup can safely invoke it.
-     *
-     * @return number of duplicate entries removed.
-     */
-    suspend fun dedupe(): Int = mutationMutex.withLock {
-        val liked = playlistRepository.getLikedSongs() ?: return@withLock 0
-        val healed = liked.tracks.distinctSongs()
-        val removed = liked.tracks.size - healed.size
-        if (removed <= 0) return@withLock 0
-        val written = runCatching {
-            playlistRepository.replaceTracksForSync(liked.id, healed, liked.tracks)
-        }.getOrNull()
-        if (written != null) {
-            refresh()
-            removed
-        } else {
-            0
-        }
     }
 
     private suspend fun refresh() {

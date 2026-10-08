@@ -1,0 +1,3 @@
+c0342ecda881f6d0c66debc1549ec012e042164af7ab87f50a5f9053c55161db  Bhavyam-v4.2.2-android7.apk
+75dbb4f24fed8adbd4c7eabee73da6e5599c84ad08c6141fcfcdf509e3aa5dc9  Bhavyam-v4.2.2-raw.apk
+d4150a11f197ed87b3a6baef304bdcb482c899d879601396de40f8301574a670  Bhavyam-v4.2.2-release.apk
