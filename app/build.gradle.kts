@@ -14,6 +14,7 @@ plugins {
 android {
     namespace = "com.bhavya.music"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     val localProps = Properties().apply {
         val localPropsFile = rootProject.file("local.properties")
@@ -60,8 +61,8 @@ android {
         applicationId = "com.bhavya.music"
         minSdk = (project.findProperty("minSdk") as? String)?.toIntOrNull() ?: 29
         targetSdk = 35
-versionCode = 24
-        versionName = "1.2"
+versionCode = 25
+        versionName = "1.3"
 
         // Native secrets (addon client lock) live strictly in native .so via
         // SecretsBridge_generated.h (tools/generate_native_secrets.py).
@@ -77,8 +78,8 @@ versionCode = 24
                     "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
                     "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
                 )
-                cFlags += "-Wl,-z,max-page-size=16384"
-                cppFlags += "-Wl,-z,max-page-size=16384"
+                
+                
             }
         }
     }
@@ -156,7 +157,7 @@ versionCode = 24
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = "3.31.6"
         }
     }
 
