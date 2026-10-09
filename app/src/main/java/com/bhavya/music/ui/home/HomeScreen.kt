@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -50,6 +52,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.GraphicEq
@@ -174,6 +177,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val settings by viewModel.settings.collectAsStateWithLifecycle(initialValue = com.bhavya.music.data.local.MiscSettings())
 
     LaunchedEffect(viewModel) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -234,9 +238,11 @@ fun HomeScreen(
             )
             Spacer(Modifier.height(2.dp))
 
-            if (uiState.isLocalStatsMode && !uiState.isViewingFriend) {
+            if (uiState.isLocalStatsMode && !uiState.isViewingFriend && !settings.localStatsBannerDismissed) {
+                val coroutineScope = rememberCoroutineScope()
                 LocalStatsBanner(
                     onOpenSettings = onOpenSettings,
+                    onDismiss = { coroutineScope.launch { viewModel.settingsPrefs.setLocalStatsBannerDismissed(true) } },
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp),
                 )
             }
@@ -570,13 +576,13 @@ fun ProfileAvatar(avatarUrl: String?, modifier: Modifier = Modifier) {
 @Composable
 private fun LocalStatsBanner(
     onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.secondaryContainer,
         modifier = modifier.fillMaxWidth(),
-        onClick = onOpenSettings,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
@@ -588,6 +594,14 @@ private fun LocalStatsBanner(
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f),
             )
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Dismiss",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                )
+            }
         }
     }
 }

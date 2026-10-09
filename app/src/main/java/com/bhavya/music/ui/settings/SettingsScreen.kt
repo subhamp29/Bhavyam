@@ -172,6 +172,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.bhavya.music.data.local.AppLanguage
 import com.bhavya.music.data.local.nativeDisplayName
@@ -4744,7 +4745,7 @@ private fun SyncPlaylistsSheet(
                                         maxLines = 1,
                                     )
                                     Text(
-                                        "${playlist.tracks.size} tracks",
+                                        pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, playlist.tracks.size),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

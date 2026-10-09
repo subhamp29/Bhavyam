@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bhavya.music.data.music.YouTubeMusicTrack
@@ -199,7 +200,7 @@ private fun PlaylistContent(
                 Text(
                     text = listOfNotNull(
                         playlist.author?.takeIf(String::isNotBlank),
-                        "${playlist.tracks.size} tracks",
+                        pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, playlist.tracks.size),
                     ).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
