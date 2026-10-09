@@ -3180,10 +3180,9 @@ private fun MainControls(state: MusicPlayerState, player: MusicPlayer, isTranslu
                     scaleY = playScale
                 },
         ) {
-            Row(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                contentAlignment = Alignment.Center,
             ) {
                 if (state.isBuffering) {
                     ExpressiveInlineLoadingIndicator(
@@ -3192,14 +3191,38 @@ private fun MainControls(state: MusicPlayerState, player: MusicPlayer, isTranslu
                         strokeWidth = 3.dp,
                     )
                 } else {
-                    AnimatedPlayPauseIcon(state.isPlaying, Modifier.size(if (isTranslucent) 28.dp else 30.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = if (state.isPlaying) "Pause" else "Play",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = androidx.compose.material3.LocalContentColor.current
-                    )
+                    // Icon and label are wrapped in a single AnimatedContent so they
+                    // swap atomically — no half-state where the old icon is still
+                    // transitioning while the new label text has already flipped.
+                    AnimatedContent(
+                        targetState = state.isPlaying,
+                        transitionSpec = {
+                            (fadeIn(tween(ExpressiveMotion.Quick)) +
+                                scaleIn(ExpressiveMotion.spatialSpring(), initialScale = 0.88f)) togetherWith
+                                (fadeOut(tween(ExpressiveMotion.Quick)) +
+                                    scaleOut(tween(ExpressiveMotion.Quick), targetScale = 0.88f))
+                        },
+                        label = "playPauseContent",
+                    ) { playing ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(if (isTranslucent) 28.dp else 30.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = if (playing) "Pause" else "Play",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                color = androidx.compose.material3.LocalContentColor.current,
+                            )
+                        }
+                    }
                 }
             }
         }
