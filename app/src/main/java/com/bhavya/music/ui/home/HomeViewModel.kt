@@ -3,8 +3,6 @@ package com.bhavya.music.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bhavya.music.data.local.SessionPreferences
-import com.bhavya.music.data.local.MiscSettings
-import com.bhavya.music.data.local.SettingsPreferences
 import com.bhavya.music.data.model.FriendEntry
 import com.bhavya.music.data.repository.HomeRepository
 import com.bhavya.music.data.repository.HomeSortMode
@@ -19,7 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -255,12 +252,6 @@ class HomeViewModel @Inject constructor(
      *  that work off the frame budget entirely. */
     val rows: StateFlow<List<HomeRow>> = _rows.asStateFlow()
 
-    /** Exposes the MiscSettings from SettingsPreferences for UI consumption. */
-    val settings: Flow<MiscSettings> = settingsPreferences.settings
-
-    /** Exposes SettingsPreferences for suspend function calls. */
-    val settingsPrefs: SettingsPreferences = settingsPreferences
-
     init {
         loadInitial()
         // Last.fm connect/disconnect in Settings must switch Stats between
@@ -294,7 +285,7 @@ class HomeViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            settingsPrefs.settings.collect { misc ->
+            settingsPreferences.settings.collect { misc ->
                 _uiState.update { it.copy(pinnedFriends = misc.pinnedFriends) }
             }
         }
@@ -698,7 +689,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun toggleFriendPinned(username: String) {
-        viewModelScope.launch { settingsPrefs.toggleFriendPinned(username) }
+        viewModelScope.launch { settingsPreferences.toggleFriendPinned(username) }
     }
 
     /** Switches the whole Home screen over to a friend's data — every

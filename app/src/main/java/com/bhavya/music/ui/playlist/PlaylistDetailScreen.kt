@@ -113,7 +113,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -386,11 +385,9 @@ fun PlaylistDetailScreen(
                     // Metadata line (tracks count & date)
                     Text(
                         text = if (playlist.isYouTubeOnly) {
-                            playlist.remoteTrackCount?.let { count ->
-                                pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, count) + " • YouTube Music"
-                            } ?: "YouTube Music"
+                            playlist.remoteTrackCount?.let { "$it songs • YouTube Music" } ?: "YouTube Music"
                         } else {
-                            pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, playlist.tracks.size) + " \u2022 ${formatDate(playlist.createdAtMillis)}"
+                            "${playlist.tracks.size} songs \u2022 ${formatDate(playlist.createdAtMillis)}"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
@@ -609,11 +606,9 @@ fun PlaylistDetailScreen(
                         ) {
                             Text(
                                 if (playlist.isYouTubeOnly) {
-                                    playlist.remoteTrackCount?.let { count ->
-                                        pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, count)
-                                    } ?: pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, 0)
+                                    playlist.remoteTrackCount?.let { "$it tracks" } ?: "Tracks"
                                 } else {
-                                    pluralStringResource(com.bhavya.music.R.plurals.playlist_track_count, playlist.tracks.size)
+                                    "${playlist.tracks.size} tracks"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

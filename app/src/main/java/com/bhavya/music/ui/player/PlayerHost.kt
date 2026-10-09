@@ -2612,11 +2612,7 @@ private fun FullPlayer(
                                             .padding(horizontal = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        Column(
-                                            Modifier
-                                                .weight(1f)
-                                                .fillMaxWidth(),
-                                        ) {
+                                        Column(Modifier.weight(1f)) {
                                             Text(
                                                 track.title,
                                                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -2624,6 +2620,8 @@ private fun FullPlayer(
                                                     fontWeight = FontWeight.ExtraBold,
                                                 ),
                                                 color = Color.White,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .basicMarquee(iterations = Int.MAX_VALUE),
@@ -2661,7 +2659,87 @@ private fun FullPlayer(
                                                         )
                                                     }
                                                 }
-}
+                                            }
+                                        }
+
+                                        Spacer(Modifier.width(12.dp))
+
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            val likeInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                                            val isLikePressed by likeInteraction.collectIsPressedAsState()
+                                            val likeScale by animateFloatAsState(
+                                                targetValue = if (isLikePressed) 0.78f else 1.0f,
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow,
+                                                ),
+                                                label = "likeScale",
+                                            )
+                                            LiquidGlassSurface(
+                                                glassModifier = Modifier.liquidGlassChrome(CircleShape, LocalLiquidGlass.current, LiquidGlassPreset.PlayerControls, interactionSource = likeInteraction),
+                                                onClick = onToggleLiked,
+                                                interactionSource = likeInteraction,
+                                                shape = CircleShape,
+                                                color = liquidGlassContainerColor(if (isLiked) {
+                                                    Color.White.copy(alpha = 0.92f)
+                                                } else {
+                                                    Color.White.copy(alpha = 0.14f)
+                                                }),
+                                                contentColor = if (isLiked) {
+                                                    Color(0xFFE91E63)
+                                                } else {
+                                                    Color.White.copy(alpha = 0.85f)
+                                                },
+                                                tonalElevation = 0.dp,
+                                                shadowElevation = 0.dp,
+                                                modifier = Modifier
+                                                    .size(46.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = likeScale
+                                                        scaleY = likeScale
+                                                    },
+                                            ) {
+                                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                                        contentDescription = if (isLiked) "Unlike song" else "Like song",
+                                                        modifier = Modifier.size(24.dp),
+                                                    )
+                                                }
+                                            }
+                                            val lyricsInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                                            val isLyricsPressed by lyricsInteraction.collectIsPressedAsState()
+                                            val lyricsScale by animateFloatAsState(
+                                                targetValue = if (isLyricsPressed) 0.82f else 1.0f,
+                                                animationSpec = ExpressiveMotion.spatialSpring(),
+                                                label = "lyricsScale",
+                                            )
+                                            LiquidGlassSurface(
+                                                glassModifier = Modifier.liquidGlassChrome(CircleShape, LocalLiquidGlass.current, LiquidGlassPreset.PlayerControls, interactionSource = lyricsInteraction),
+                                                onClick = { onTabChange(FullPlayerTab.LYRICS) },
+                                                interactionSource = lyricsInteraction,
+                                                shape = CircleShape,
+                                                color = liquidGlassContainerColor(Color.White.copy(alpha = 0.14f)),
+                                                contentColor = Color.White.copy(alpha = 0.90f),
+                                                tonalElevation = 0.dp,
+                                                shadowElevation = 0.dp,
+                                                modifier = Modifier
+                                                    .size(46.dp)
+                                                    .graphicsLayer {
+                                                        scaleX = lyricsScale
+                                                        scaleY = lyricsScale
+                                                    },
+                                            ) {
+                                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        Icons.Filled.FormatQuote,
+                                                        contentDescription = "Show lyrics",
+                                                        modifier = Modifier.size(24.dp),
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -2682,15 +2760,7 @@ private fun FullPlayer(
                                     MainControls(state, player, isTranslucent = true)
                                     }
                                     Spacer(Modifier.height(24.dp))
-                                    PlayerUtilityControls(
-                                        state = state,
-                                        player = player,
-                                        isTranslucent = true,
-                                        track = track,
-                                        isLiked = isLiked,
-                                        onToggleLiked = onToggleLiked,
-                                        onOpenLyrics = { onTabChange(FullPlayerTab.LYRICS) },
-                                    )
+                                    PlayerUtilityControls(state, player, isTranslucent = true)
                                 }
                         }
                     }
@@ -2753,6 +2823,7 @@ private fun FullPlayer(
             onDismiss = { showLyricsOffsetDialog = false },
         )
     }
+}
 }
 
 @Composable
@@ -3210,15 +3281,7 @@ glassModifier = Modifier.liquidGlassChrome(CircleShape, LocalLiquidGlass.current
 }
 
 @Composable
-private fun PlayerUtilityControls(
-    state: MusicPlayerState,
-    player: MusicPlayer,
-    isTranslucent: Boolean = false,
-    track: PlayableTrack,
-    isLiked: Boolean,
-    onToggleLiked: () -> Unit,
-    onOpenLyrics: () -> Unit,
-) {
+private fun PlayerUtilityControls(state: MusicPlayerState, player: MusicPlayer, isTranslucent: Boolean = false) {
     var showSignalPath by remember { mutableStateOf(false) }
     val signalPath by player.signalPath.collectAsStateWithLifecycle()
     val usbDac by player.usbDacState.collectAsStateWithLifecycle()
@@ -3347,80 +3410,6 @@ private fun PlayerUtilityControls(
                     modifier = Modifier
                         .weight(1f, fill = false)
                         .padding(start = 6.dp),
-                )
-            }
-        }
-        // Heart + Lyrics buttons (moved from title row)
-        val likeInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-        val isLikePressed by likeInteraction.collectIsPressedAsState()
-        val likeScale by animateFloatAsState(
-            targetValue = if (isLikePressed) 0.78f else 1.0f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            ),
-            label = "likeScale",
-        )
-        LiquidGlassSurface(
-            glassModifier = Modifier.liquidGlassChrome(CircleShape, LocalLiquidGlass.current, LiquidGlassPreset.PlayerControls, interactionSource = likeInteraction),
-            onClick = onToggleLiked,
-            interactionSource = likeInteraction,
-            shape = CircleShape,
-            color = liquidGlassContainerColor(if (isLiked) {
-                Color.White.copy(alpha = 0.92f)
-            } else {
-                Color.White.copy(alpha = 0.14f)
-            }),
-            contentColor = if (isLiked) {
-                Color(0xFFE91E63)
-            } else {
-                Color.White.copy(alpha = 0.85f)
-            },
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
-            modifier = Modifier
-                .size(if (isTranslucent) 40.dp else 44.dp)
-                .graphicsLayer {
-                    scaleX = likeScale
-                    scaleY = likeScale
-                },
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(
-                    if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = if (isLiked) "Unlike song" else "Like song",
-                    modifier = Modifier.size(if (isTranslucent) 20.dp else 22.dp),
-                )
-            }
-        }
-        val lyricsInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-        val isLyricsPressed by lyricsInteraction.collectIsPressedAsState()
-        val lyricsScale by animateFloatAsState(
-            targetValue = if (isLyricsPressed) 0.82f else 1.0f,
-            animationSpec = ExpressiveMotion.spatialSpring(),
-            label = "lyricsScale",
-        )
-        LiquidGlassSurface(
-            glassModifier = Modifier.liquidGlassChrome(CircleShape, LocalLiquidGlass.current, LiquidGlassPreset.PlayerControls, interactionSource = lyricsInteraction),
-            onClick = onOpenLyrics,
-            interactionSource = lyricsInteraction,
-            shape = CircleShape,
-            color = liquidGlassContainerColor(Color.White.copy(alpha = 0.14f)),
-            contentColor = Color.White.copy(alpha = 0.90f),
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
-            modifier = Modifier
-                .size(if (isTranslucent) 40.dp else 44.dp)
-                .graphicsLayer {
-                    scaleX = lyricsScale
-                    scaleY = lyricsScale
-                },
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.FormatQuote,
-                    contentDescription = "Show lyrics",
-                    modifier = Modifier.size(if (isTranslucent) 20.dp else 22.dp),
                 )
             }
         }
