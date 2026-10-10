@@ -256,5 +256,11 @@
     <string name="desc_shuffle">عشوائي</string>
     <string name="desc_repeat">تكرار</string>
     <string name="desc_play_pause">تشغيل أو إيقاف</string>
+
+    <!-- صيغة الجمع لعدد المقطوعات في القائمة -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d مقطوعة</item>
+        <item quantity="other">%1$d مقطوعات</item>
+    </plurals>
 </resources>
 

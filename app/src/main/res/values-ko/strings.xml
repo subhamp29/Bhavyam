@@ -256,5 +256,11 @@
     <string name="desc_shuffle">셔플</string>
     <string name="desc_repeat">반복</string>
     <string name="desc_play_pause">재생 또는 일시정지</string>
+
+    <!-- 플레이리스트 트랙 수 복수형 -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d 곡</item>
+        <item quantity="other">%1$d 곡</item>
+    </plurals>
 </resources>
 

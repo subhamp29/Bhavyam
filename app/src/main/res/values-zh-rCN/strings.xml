@@ -259,5 +259,11 @@
     <string name="desc_shuffle">随机播放</string>
     <string name="desc_repeat">重复</string>
     <string name="desc_play_pause">播放或暂停</string>
+
+    <!-- 歌单曲目数量复数形式 -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d 首曲目</item>
+        <item quantity="other">%1$d 首曲目</item>
+    </plurals>
 </resources>
 

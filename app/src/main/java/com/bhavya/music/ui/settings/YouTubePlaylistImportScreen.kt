@@ -94,6 +94,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bhavya.music.data.music.YouTubePlaylistResult
@@ -108,6 +109,7 @@ import com.bhavya.music.ui.common.adaptiveContentWidth
 import com.bhavya.music.ui.player.LocalMiniPlayerScrollClearance
 import com.bhavya.music.ui.shell.FloatingNavDefaults
 import com.bhavya.music.ui.theme.ArtworkShape
+import com.bhavya.music.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -737,8 +739,16 @@ private fun YouTubePlaylistCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
+                val trackCount = playlist.trackCountText?.let { text ->
+                    text.replace("\\D+".toRegex(), "").toIntOrNull()
+                } ?: 0
+                val trackCountLabel = if (trackCount > 0) {
+                    pluralStringResource(R.plurals.playlist_track_count, trackCount, trackCount)
+                } else {
+                    pluralStringResource(R.plurals.playlist_track_count, 2, 2)
+                }
                 Text(
-                    text = "${playlist.author ?: "YouTube Music"} \u2022 ${playlist.trackCountText ?: "Playlist"}",
+                    text = "${playlist.author ?: "YouTube Music"} \u2022 $trackCountLabel",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -803,7 +813,7 @@ private fun PlaylistPreviewModal(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        "${preview.author ?: "YouTube"} \u2022 ${preview.trackCount} tracks",
+                        "${preview.author ?: "YouTube"} \u2022 ${pluralStringResource(R.plurals.playlist_track_count, preview.trackCount, preview.trackCount)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

@@ -173,6 +173,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import com.bhavya.music.data.local.AppLanguage
 import com.bhavya.music.data.local.nativeDisplayName
 import androidx.compose.ui.text.font.FontWeight
@@ -4736,19 +4737,19 @@ private fun SyncPlaylistsSheet(
 
                                 Spacer(Modifier.width(14.dp))
 
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        playlist.title,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1,
-                                    )
-                                    Text(
-                                        "${playlist.tracks.size} tracks",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
+Column(Modifier.weight(1f)) {
+                                     Text(
+                                         playlist.title,
+                                         style = MaterialTheme.typography.bodyLarge,
+                                         fontWeight = FontWeight.SemiBold,
+                                         maxLines = 1,
+                                     )
+                                     Text(
+                                         pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size, playlist.tracks.size),
+                                         style = MaterialTheme.typography.bodySmall,
+                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                     )
+                                 }
 
                                 Checkbox(
                                     checked = isChecked,

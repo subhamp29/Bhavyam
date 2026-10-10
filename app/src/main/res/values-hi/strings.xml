@@ -256,5 +256,11 @@
     <string name="desc_shuffle">शफ़ल</string>
     <string name="desc_repeat">दोहराएँ</string>
     <string name="desc_play_pause">चलाएँ या रोकें</string>
+
+    <!-- प्लेलिस्ट में ट्रैक काउंट के लिए बहुवचन -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d गाना</item>
+        <item quantity="other">%1$d गाने</item>
+    </plurals>
 </resources>
 

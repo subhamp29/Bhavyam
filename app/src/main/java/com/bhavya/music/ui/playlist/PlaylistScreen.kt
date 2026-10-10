@@ -723,10 +723,11 @@ private fun PlaylistCard(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     if (playlist.isYouTubeOnly) {
-                        val count = playlist.remoteTrackCount ?: 0
-                        "YouTube Music • ${pluralStringResource(R.plurals.playlist_track_count, count)}"
+                        playlist.remoteTrackCount?.let { count ->
+                            "YouTube Music \u2022 ${pluralStringResource(R.plurals.playlist_track_count, count, count)}"
+                        } ?: "YouTube Music"
                     } else {
-                        "${pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size)} \u00b7 ${formatDate(playlist.createdAtMillis)}"
+                        "${pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size, playlist.tracks.size)} \u2022 ${formatDate(playlist.createdAtMillis)}"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

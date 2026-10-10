@@ -259,5 +259,11 @@
     <string name="desc_shuffle">Karıştır</string>
     <string name="desc_repeat">Tekrarla</string>
     <string name="desc_play_pause">Çal veya duraklat</string>
+
+    <!-- Çalma listesi parça sayısı için çoğul -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d parça</item>
+        <item quantity="other">%1$d parça</item>
+    </plurals>
 </resources>
 

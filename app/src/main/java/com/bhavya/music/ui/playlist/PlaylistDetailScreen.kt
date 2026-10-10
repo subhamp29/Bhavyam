@@ -114,6 +114,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -138,6 +139,7 @@ import com.bhavya.music.ui.common.adaptiveContentWidth
 import com.bhavya.music.ui.shell.FloatingNavDefaults
 import com.bhavya.music.ui.theme.ArtworkShape
 import com.bhavya.music.ui.theme.ExpressivePillShape
+import com.bhavya.music.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -385,9 +387,11 @@ fun PlaylistDetailScreen(
                     // Metadata line (tracks count & date)
                     Text(
                         text = if (playlist.isYouTubeOnly) {
-                            playlist.remoteTrackCount?.let { "$it songs • YouTube Music" } ?: "YouTube Music"
+                            playlist.remoteTrackCount?.let { count ->
+                                "${pluralStringResource(R.plurals.playlist_track_count, count, count)} \u2022 YouTube Music"
+                            } ?: "YouTube Music"
                         } else {
-                            "${playlist.tracks.size} songs \u2022 ${formatDate(playlist.createdAtMillis)}"
+                            "${pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size, playlist.tracks.size)} \u2022 ${formatDate(playlist.createdAtMillis)}"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
@@ -606,9 +610,11 @@ fun PlaylistDetailScreen(
                         ) {
                             Text(
                                 if (playlist.isYouTubeOnly) {
-                                    playlist.remoteTrackCount?.let { "$it tracks" } ?: "Tracks"
+                                    playlist.remoteTrackCount?.let { count ->
+                                        pluralStringResource(R.plurals.playlist_track_count, count, count)
+                                    } ?: pluralStringResource(R.plurals.playlist_track_count, 2, 2)
                                 } else {
-                                    "${playlist.tracks.size} tracks"
+                                    pluralStringResource(R.plurals.playlist_track_count, playlist.tracks.size, playlist.tracks.size)
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

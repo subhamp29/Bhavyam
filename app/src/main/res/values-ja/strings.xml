@@ -256,5 +256,11 @@
     <string name="desc_shuffle">シャッフル</string>
     <string name="desc_repeat">リピート</string>
     <string name="desc_play_pause">再生 / 一時停止</string>
+
+    <!-- プレイリストのトラック数の複数形 -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d 曲</item>
+        <item quantity="other">%1$d 曲</item>
+    </plurals>
 </resources>
 

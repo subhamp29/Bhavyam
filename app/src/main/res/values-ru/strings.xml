@@ -256,5 +256,13 @@
     <string name="desc_shuffle">Перемешать</string>
     <string name="desc_repeat">Повтор</string>
     <string name="desc_play_pause">Играть или пауза</string>
+
+    <!-- Множественное число для количества треков в плейлисте -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d трек</item>
+        <item quantity="few">%1$d трека</item>
+        <item quantity="many">%1$d треков</item>
+        <item quantity="other">%1$d трека</item>
+    </plurals>
 </resources>
 

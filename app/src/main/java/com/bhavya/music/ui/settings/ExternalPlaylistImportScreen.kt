@@ -58,8 +58,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bhavya.music.R
 import com.bhavya.music.data.playlist.ExternalTrackRow
 import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.ui.common.ExpressiveHeader
@@ -254,7 +256,7 @@ fun ExternalPlaylistImportScreen(
                                 }
 
                                 Text(
-                                    if (rows.size == 1) "1 track" else "${rows.size} tracks",
+                                    pluralStringResource(R.plurals.playlist_track_count, rows.size, rows.size),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -295,7 +297,7 @@ fun ExternalPlaylistImportScreen(
                     if (rows.size > visibleRows.size) {
                         item {
                             Text(
-                                "+ ${rows.size - visibleRows.size} more tracks",
+                                "+ ${rows.size - visibleRows.size} ${pluralStringResource(R.plurals.playlist_track_count, rows.size - visibleRows.size, rows.size - visibleRows.size).lowercase()}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -368,7 +370,7 @@ fun ExternalPlaylistImportScreen(
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (rows.size == 1) "Import 1 track" else "Import ${rows.size} tracks",
+                        "Import ${pluralStringResource(R.plurals.playlist_track_count, rows.size, rows.size)}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                     )

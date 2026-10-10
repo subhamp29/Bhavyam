@@ -256,5 +256,11 @@
     <string name="desc_shuffle">Aléatoire</string>
     <string name="desc_repeat">Répéter</string>
     <string name="desc_play_pause">Lire ou suspendre</string>
+
+    <!-- Pluriel pour le nombre de pistes dans la playlist -->
+    <plurals name="playlist_track_count">
+        <item quantity="one">%1$d morceau</item>
+        <item quantity="other">%1$d morceaux</item>
+    </plurals>
 </resources>
 
