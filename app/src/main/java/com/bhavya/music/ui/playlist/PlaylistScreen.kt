@@ -98,6 +98,7 @@ import com.bhavya.music.data.generate.GeneratedTrack
 import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.data.playlist.LIKED_SONGS_MODE
 import com.bhavya.music.data.playlist.isYouTubeOnly
+import com.bhavya.music.data.playlist.isDeletable
 import com.bhavya.music.playback.toPlayableTrack
 import com.bhavya.music.ui.common.ArtworkImage
 import com.bhavya.music.ui.common.ExpressiveHeader
@@ -154,6 +155,7 @@ fun PlaylistScreen(
     var menuTarget by remember { mutableStateOf<Pair<Long, GeneratedTrack>?>(null) }
     var selectedPlaylists by remember { mutableStateOf(setOf<Long>()) }
     var showMultipleDeleteConfirm by remember { mutableStateOf(false) }
+    var showCleanupLikedSongsConfirm by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -231,6 +233,15 @@ fun PlaylistScreen(
                                 DropdownMenuItem(text = { Text("Oldest first") }, onClick = { viewModel.setSortMode(PlaylistSortMode.DATE_ASC); sortMenuExpanded = false })
                                 DropdownMenuItem(text = { Text("Name") }, onClick = { viewModel.setSortMode(PlaylistSortMode.NAME); sortMenuExpanded = false })
                                 DropdownMenuItem(text = { Text("Track count") }, onClick = { viewModel.setSortMode(PlaylistSortMode.TRACK_COUNT); sortMenuExpanded = false })
+                                DropdownMenuItem(
+                                    text = { Text("Remove duplicate 'Liked Songs' on YouTube Music", color = MaterialTheme.colorScheme.error) },
+                                    leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        sortMenuExpanded = false
+                                        // Show confirmation dialog
+                                        showCleanupLikedSongsConfirm = true
+                                    },
+                                )
                             }
                         }
                     }
@@ -349,6 +360,33 @@ fun PlaylistScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showMultipleDeleteConfirm = false }) { Text("Cancel") }
+                },
+            )
+        }
+
+        if (showCleanupLikedSongsConfirm) {
+            AlertDialog(
+                onDismissRequest = { showCleanupLikedSongsConfirm = false },
+                title = { Text("Remove duplicate 'Liked Songs'?") },
+                text = {
+                    Text(
+                        "This will scan your YouTube Music account for playlists titled exactly " +
+                        "'Liked Songs' (excluding YouTube's own Liked Music) and delete all but " +
+                        "the oldest one. Playlist sync will be temporarily disabled during cleanup."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.cleanupDuplicateLikedSongsOnYouTube()
+                            showCleanupLikedSongsConfirm = false
+                        }
+                    ) {
+                        Text("Delete duplicates", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCleanupLikedSongsConfirm = false }) { Text("Cancel") }
                 },
             )
         }
@@ -786,7 +824,7 @@ private fun PlaylistCard(
                             onClick = { onExport(); menuExpanded = false },
                         )
                     }
-                    if (playlist.systemKey == null) {
+                    if (playlist.isDeletable) {
                         DropdownMenuItem(
                             text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                             leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },

@@ -59,6 +59,15 @@ data class SavedPlaylist(
 val SavedPlaylist.isYouTubeOnly: Boolean
     get() = remotePlaylistId != null
 
+/** True for playlists that can be deleted by the user.
+ * - The built-in Liked Songs (systemKey == "liked_songs") is never deletable.
+ * - YouTube Music's Liked Music playlist (remotePlaylistId == "LM" or "VLLM")
+ *   is not deletable because it's a system mirror managed by YouTube.
+ * - All other playlists (custom, generated, imported) are deletable. */
+val SavedPlaylist.isDeletable: Boolean
+    get() = systemKey != "liked_songs" &&
+        remotePlaylistId?.removePrefix("VL") != "LM"
+
 private const val MAX_SAVED_PLAYLISTS = 20
 private const val STARTUP_SYNC_WAIT_MS = 2_000L
 private const val TAG = "PlaylistRepository"
@@ -393,7 +402,8 @@ class PlaylistRepository @Inject constructor(
     }
 
     suspend fun getLikedSongs(): SavedPlaylist? =
-        getAll().firstOrNull { it.mode == LIKED_SONGS_MODE }
+        getAll().firstOrNull { it.systemKey == "liked_songs" }
+            ?: getAll().firstOrNull { it.mode == LIKED_SONGS_MODE }
 
     /** Creates the built-in local playlist only when it is genuinely absent.
      * Idempotent: uses INSERT OR IGNORE on systemKey to avoid races. */

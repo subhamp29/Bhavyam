@@ -75,6 +75,10 @@ class YtMusicSyncManager @Inject constructor(
     val state: StateFlow<YtSyncState> = _state.asStateFlow()
 
     private val negativeMatchCache = ConcurrentHashMap<String, Long>()
+    /** Tracks local playlist IDs for which we've already created a remote
+     * playlist in this process. Prevents runaway duplicate creation if
+     * mapping persistence fails or races occur. */
+    private val createdRemotesThisProcess = mutableSetOf<Long>()
     @Volatile private var started = false
     @Volatile private var sessionExpired = false
 
@@ -134,9 +138,13 @@ class YtMusicSyncManager @Inject constructor(
         }
 
         try {
-            // Liked Songs included: it mirrors as a private "Liked Songs"
-            // playlist. Selective-sync users opt in via the sync picker.
-            val allPlaylists = playlistRepository.getAll().filterNot { it.remotePlaylistId != null }
+            // Liked Songs (systemKey == "liked_songs") is EXCLUDED from upward
+            // mirror because YouTube's own Liked Music (LM) already merges into
+            // it via importYtLikedIntoLikedSongs. Mirroring it again would create
+            // a duplicate private "Liked Songs" on the account every sync.
+            val allPlaylists = playlistRepository.getAll()
+                .filterNot { it.remotePlaylistId != null }
+                .filterNot { it.systemKey == "liked_songs" }
             val syncedIds = preferences.syncedPlaylistIds.first()
             val playlists = if (syncedIds != null) allPlaylists.filter { it.id in syncedIds } else allPlaylists
 
@@ -249,11 +257,34 @@ class YtMusicSyncManager @Inject constructor(
             }
         }
         if (remoteId == null) {
-            remoteId = innerTube.createRemotePlaylist(playlist.title)
-                ?: throw IllegalStateException("Could not create YouTube Music playlist")
+            // Circuit-breaker: never create more than one remote per local
+            // playlist id per process. This prevents runaway duplicate creation
+            // if something goes wrong with mapping persistence.
+            if (createdRemotesThisProcess.contains(playlist.id)) {
+                throw IllegalStateException("Already created a remote for local playlist ${playlist.id} this process; aborting to avoid duplicates")
+            }
+            // Try to adopt an existing unmapped account playlist with the same
+            // title (skipping LM). This avoids creating a new "Liked Songs"
+            // or duplicate mirrors when the user already has a matching playlist.
+            val accountPlaylists = libraryManager.playlists.value
+            val mappedRemoteIds = allMappings.values.mapNotNull { it.remotePlaylistId?.removePrefix("VL") }.toSet()
+            val candidate = accountPlaylists.firstOrNull { ap ->
+                ap.remotePlaylistId?.removePrefix("VL") != "LM" &&
+                ap.title.equals(playlist.title, ignoreCase = true) &&
+                ap.remotePlaylistId?.removePrefix("VL")?.let { it !in mappedRemoteIds } == true
+            }
+            if (candidate != null) {
+                remoteId = candidate.remotePlaylistId!!
+                Log.d(DEBUG_TAG, "Adopted existing remote playlist \"${candidate.title}\" (${candidate.remotePlaylistId}) for local \"${playlist.title}\"")
+            } else {
+                remoteId = innerTube.createRemotePlaylist(playlist.title)
+                    ?: throw IllegalStateException("Could not create YouTube Music playlist")
+                Log.d(DEBUG_TAG, "Created new remote playlist \"${playlist.title}\" ($remoteId) for local id ${playlist.id}")
+            }
             mapping = YtPlaylistMapping(remoteId, playlist.title)
             allMappings[playlist.id] = mapping
             preferences.setMappings(allMappings)
+            createdRemotesThisProcess.add(playlist.id)
             mutatedRemote = true
         } else if (remoteId != null && mapping?.remoteTitle != playlist.title && playlist.title.isNotBlank()) {
             innerTube.renameRemotePlaylist(remoteId, playlist.title)
@@ -413,6 +444,7 @@ class YtMusicSyncManager @Inject constructor(
 
     private companion object {
         const val TAG = "YtMusicSyncManager"
+        const val DEBUG_TAG = "YtSyncDebug"
         const val DEBOUNCE_MS = 750L
         const val INITIAL_DELAY_MS = 2_000L
         const val PERIODIC_INTERVAL_MS = 60_000L

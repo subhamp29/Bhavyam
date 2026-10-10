@@ -13,6 +13,7 @@ import com.bhavya.music.data.playlist.PlaylistExportEvents
 import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.data.playlist.LIKED_SONGS_MODE
 import com.bhavya.music.data.playlist.isYouTubeOnly
+import com.bhavya.music.data.playlist.isDeletable
 import com.bhavya.music.data.repository.AuthRepository
 import com.bhavya.music.util.FileExportHelper
 import com.bhavya.music.util.PlaylistExportFormat
@@ -132,7 +133,11 @@ class PlaylistViewModel @Inject constructor(
                     ?.takeIf { it.isYouTubeOnly }
                     ?.id
                 _uiState.update { current ->
-                    val local = current.playlists.filterNot { it.isYouTubeOnly }
+                    // Filter out YouTube-only playlists AND local playlists that
+                    // have a remote counterpart (by remotePlaylistId) to prevent
+                    // duplicates after migration removed yt_* rows from Room.
+                    val remoteIds = remote.mapNotNull { it.remotePlaylistId }.toSet()
+                    val local = current.playlists.filterNot { it.isYouTubeOnly || (it.remotePlaylistId != null && it.remotePlaylistId in remoteIds) }
                     current.copy(playlists = sortPlaylists(local + remote, current.sortMode))
                 }
                 if (openRemoteId != null && remote.any { it.id == openRemoteId }) {
@@ -166,7 +171,11 @@ class PlaylistViewModel @Inject constructor(
                 emptyList()
             }
             val remote = runCatching { ytMusicLibraryManager.playlists.value }.getOrDefault(emptyList())
-            val all = sortPlaylists(local + remote, _uiState.value.sortMode)
+            // Drop any local row whose remotePlaylistId matches a live remote entry
+            // (safety net for duplicates already in Room before migration runs).
+            val remoteIds = remote.mapNotNull { it.remotePlaylistId }.toSet()
+            val dedupedLocal = local.filterNot { it.remotePlaylistId != null && it.remotePlaylistId in remoteIds }
+            val all = sortPlaylists(dedupedLocal + remote, _uiState.value.sortMode)
             val newest = justGeneratedId ?: all.maxByOrNull { it.createdAtMillis }?.id
             _uiState.update { current ->
                 val currentDetailId = current.detailPlaylist?.id
@@ -458,22 +467,36 @@ class PlaylistViewModel @Inject constructor(
     fun confirmDelete() {
         val id = _uiState.value.deleteConfirmForPlaylistId ?: return
         viewModelScope.launch {
-            val playlist = playlistRepository.getById(id)
-            if (playlist != null && playlist.systemKey != null) {
-                _uiState.update { it.copy(deleteConfirmForPlaylistId = null, toastMessage = "System playlists can't be deleted") }
+            // Prefer the playlist from current UI state (which has the latest remote
+            // info), fall back to repository for local-only playlists.
+            val playlist = _uiState.value.playlists.firstOrNull { it.id == id }
+                ?: _uiState.value.detailPlaylist?.takeIf { it.id == id }
+                ?: playlistRepository.getById(id)
+            if (playlist == null || !playlist.isDeletable) {
+                _uiState.update { it.copy(deleteConfirmForPlaylistId = null, toastMessage = "This playlist can't be deleted") }
                 return@launch
             }
-            if (playlist != null && (playlist.isYouTubeOnly || playlist.remotePlaylistId != null)) {
-                val ytId = if (playlist.isYouTubeOnly) playlist.remotePlaylistId ?: playlist.id.toString() else playlist.remotePlaylistId
-                if (ytId != null) {
-                    try {
-                        innerTubeApi.deleteRemotePlaylist(ytId)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+            // For YouTube playlists, delete the remote first and CHECK the result.
+            if (playlist.isYouTubeOnly || playlist.remotePlaylistId != null) {
+                val remoteId = playlist.remotePlaylistId ?: return@launch
+                val cleanId = remoteId.removePrefix("VL")
+                val deleted = try {
+                    innerTubeApi.deleteRemotePlaylist(cleanId)
+                } catch (e: Exception) {
+                    android.util.Log.w("PlaylistViewModel", "Remote delete failed for $cleanId", e)
+                    false
                 }
+                if (!deleted) {
+                    _uiState.update { it.copy(deleteConfirmForPlaylistId = null, toastMessage = "Couldn't delete remote playlist") }
+                    return@launch
+                }
+                // Refresh the library so the remote list updates.
+                ytMusicLibraryManager.refresh()
             }
-            playlistRepository.delete(id)
+            // Only delete from Room if it's a local playlist (id >= 0).
+            if (id >= 0) {
+                playlistRepository.delete(id)
+            }
             _uiState.update { it.copy(deleteConfirmForPlaylistId = null) }
             load()
         }
@@ -481,25 +504,97 @@ class PlaylistViewModel @Inject constructor(
 
     fun deleteMultiple(ids: Set<Long>) {
         viewModelScope.launch {
+            var anyDeleted = false
             for (id in ids) {
-                val playlist = playlistRepository.getById(id)
-                if (playlist != null && playlist.systemKey != null) {
-                    _uiState.update { it.copy(toastMessage = "System playlists can't be deleted") }
-                    return@launch
+                val playlist = _uiState.value.playlists.firstOrNull { it.id == id }
+                    ?: _uiState.value.detailPlaylist?.takeIf { it.id == id }
+                    ?: playlistRepository.getById(id)
+                if (playlist == null || !playlist.isDeletable) {
+                    // Skip protected rows silently; continue with others.
+                    continue
                 }
-                if (playlist != null && (playlist.isYouTubeOnly || playlist.remotePlaylistId != null)) {
-                    val ytId = if (playlist.isYouTubeOnly) playlist.remotePlaylistId ?: playlist.id.toString() else playlist.remotePlaylistId
-                    if (ytId != null) {
-                        try {
-                            innerTubeApi.deleteRemotePlaylist(ytId)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                if (playlist.isYouTubeOnly || playlist.remotePlaylistId != null) {
+                    val remoteId = playlist.remotePlaylistId ?: continue
+                    val cleanId = remoteId.removePrefix("VL")
+                    val deleted = try {
+                        innerTubeApi.deleteRemotePlaylist(cleanId)
+                    } catch (e: Exception) {
+                        android.util.Log.w("PlaylistViewModel", "Remote delete failed for $cleanId", e)
+                        false
                     }
+                    if (!deleted) {
+                        _uiState.update { it.copy(toastMessage = "Couldn't delete ${playlist.title} on YouTube Music") }
+                        // Continue with other playlists instead of aborting.
+                        continue
+                    }
+                    // Refresh once after all remote deletes (last one wins, but that's fine).
+                    ytMusicLibraryManager.refresh()
                 }
-                playlistRepository.delete(id)
+                if (id >= 0) {
+                    playlistRepository.delete(id)
+                }
+                anyDeleted = true
+            }
+            if (anyDeleted) {
+                _uiState.update { it.copy(toastMessage = "Deleted ${ids.size} playlist${if (ids.size > 1) "s" else ""}") }
             }
             load()
+        }
+    }
+
+    /** One-time cleanup: deletes duplicate "Liked Songs" playlists on the
+     * YouTube account (keeps the oldest). Turns off playlist sync while running. */
+    fun cleanupDuplicateLikedSongsOnYouTube() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(toastMessage = "Scanning for duplicate Liked Songs…") }
+            // Turn off sync to prevent re-creation during cleanup.
+            val syncWasEnabled = ytMusicPreferences.syncEnabled.first()
+            if (syncWasEnabled) {
+                ytMusicPreferences.setSyncEnabled(false)
+            }
+            try {
+                val accountPlaylists = ytMusicLibraryManager.playlists.value
+                // Find all "Liked Songs" playlists (excluding LM which is Liked Music)
+                val likedSongsPlaylists = accountPlaylists
+                    .filter { it.remotePlaylistId?.removePrefix("VL") != "LM" }
+                    .filter { it.title.equals("Liked Songs", ignoreCase = true) }
+                    .sortedBy { it.remotePlaylistId ?: "" } // Use remote ID as proxy for creation order
+
+                if (likedSongsPlaylists.size <= 1) {
+                    _uiState.update { it.copy(toastMessage = "No duplicate Liked Songs playlists found") }
+                    return@launch
+                }
+
+                val toDelete = likedSongsPlaylists.drop(1) // Keep oldest (first)
+                val count = toDelete.size
+                _uiState.update {
+                    it.copy(
+                        toastMessage = "Found $count duplicate Liked Songs playlist${if (count > 1) "s" else ""}. Deleting…"
+                    )
+                }
+
+                var deletedCount = 0
+                for (playlist in toDelete) {
+                    val cleanId = playlist.remotePlaylistId?.removePrefix("VL") ?: continue
+                    val success = try {
+                        innerTubeApi.deleteRemotePlaylist(cleanId)
+                    } catch (e: Exception) {
+                        android.util.Log.w("PlaylistViewModel", "Failed to delete duplicate Liked Songs $cleanId", e)
+                        false
+                    }
+                    if (success) deletedCount++
+                }
+
+                ytMusicLibraryManager.refresh()
+                _uiState.update {
+                    it.copy(toastMessage = "Deleted $deletedCount duplicate Liked Songs playlist${if (deletedCount > 1) "s" else ""}")
+                }
+            } finally {
+                // Restore sync setting
+                if (syncWasEnabled) {
+                    ytMusicPreferences.setSyncEnabled(true)
+                }
+            }
         }
     }
 

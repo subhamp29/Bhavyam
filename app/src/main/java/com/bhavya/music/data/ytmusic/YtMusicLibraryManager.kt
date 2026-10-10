@@ -217,23 +217,11 @@ class YtMusicLibraryManager @Inject constructor(
                     ?: previousSummary?.trackCountText,
             )
         }
-        // Upsert remote playlists to Room via systemKey
+        // Remote playlists are NOT persisted to Room anymore — they live only in
+        // the in-memory StateFlow (accountPlaylists/playlists). The previous
+        // saveOrUpdateRemote call caused duplicates (Room rows + live remote
+        // list) and a feedback loop via PlaylistRepository.changes.
         val allRemote = stableAccount.map(::summaryToPlaylist)
-        applicationScope.launch {
-            allRemote.forEach { playlist ->
-                playlist.remotePlaylistId?.let { remoteId ->
-                    playlistRepository.saveOrUpdateRemote(
-                        systemKey = "yt_$remoteId",
-                        title = playlist.title,
-                        subtitle = playlist.subtitle,
-                        tracks = playlist.tracks,
-                        remotePlaylistId = remoteId,
-                        remoteArtworkUrl = playlist.remoteArtworkUrl,
-                        remoteTrackCount = playlist.remoteTrackCount,
-                    )
-                }
-            }
-        }
         _accountPlaylists.value = stableAccount
         remoteIdsByLocalId.clear()
         allRemote.forEach { playlist ->

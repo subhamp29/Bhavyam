@@ -272,23 +272,30 @@ object DatabaseModule {
             database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_saved_playlists_systemKey ON saved_playlists(systemKey) WHERE systemKey IS NOT NULL")
 
             // 2. Merge duplicates: keep OLDEST "Liked Songs" row, delete rest
+            // Use MIN(createdAtMillis) instead of ROW_NUMBER() for SQLite < 3.25 compatibility
             database.execSQL(
                 """
                 DELETE FROM saved_playlists
-                WHERE id IN (
-                    SELECT id FROM (
-                        SELECT id,
-                               ROW_NUMBER() OVER (PARTITION BY title COLLATE NOCASE ORDER BY createdAtMillis ASC) as rn
-                        FROM saved_playlists
-                        WHERE title = 'Liked Songs'
-                    )
-                    WHERE rn > 1
-                )
+                WHERE title = 'Liked Songs'
+                  AND id NOT IN (
+                      SELECT MIN(id) FROM saved_playlists
+                      WHERE title = 'Liked Songs'
+                      GROUP BY title COLLATE NOCASE
+                  )
                 """.trimIndent()
             )
 
             // 3. Set systemKey on the survivor
             database.execSQL("UPDATE saved_playlists SET systemKey = 'liked_songs' WHERE mode = 'liked' AND title = 'Liked Songs' AND systemKey IS NULL")
+        }
+    }
+
+    /** Removes remote YouTube playlist rows (systemKey like 'yt_%') that were
+     * incorrectly persisted by YtMusicLibraryManager.publish(). These rows are
+     * duplicates of the live remote list and cause double-display + feedback loops. */
+    private val migration14To15 = object : Migration(14, 15) {
+        override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+            database.execSQL("DELETE FROM saved_playlists WHERE systemKey LIKE 'yt_%'")
         }
     }
 
@@ -312,6 +319,7 @@ object DatabaseModule {
                 migration11To12,
                 migration12To13,
                 migration13To14,
+                migration14To15,
             )
             .build()
 
