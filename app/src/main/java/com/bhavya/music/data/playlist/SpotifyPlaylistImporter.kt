@@ -41,11 +41,22 @@ private const val TAG = "SpotifyImport"
 class SpotifyPlaylistImporter @Inject constructor(
     okHttpClient: OkHttpClient,
     private val innerTube: InnerTubeMusicApi,
-) {
+) : PlaylistProvider {
+    override val source: ExternalPlaylistSource = ExternalPlaylistSource.SPOTIFY
+
     private val client = okHttpClient.newBuilder()
         .callTimeout(20, TimeUnit.SECONDS)
         .build()
     private val json = Json { ignoreUnknownKeys = true }
+
+    override fun canHandle(raw: String): Boolean {
+        val value = raw.trim().lowercase()
+        return value.contains("spotify.com") || value.contains("spotify.link") || value.startsWith("spotify:")
+    }
+
+    override fun extractPlaylistId(raw: String): String? {
+        return ExternalPlaylistLink.extractId(raw, source)
+    }
 
     /**
      * Pure parser: Spotify embed HTML in, parsed playlist out. Performs no
@@ -100,8 +111,8 @@ class SpotifyPlaylistImporter @Inject constructor(
      * @throws IllegalArgumentException when [urlOrId] is not a Spotify playlist link or URI.
      * @throws IOException when the page cannot be fetched (non-200, network error).
      */
-    suspend fun fetchPlaylist(urlOrId: String): ExternalPlaylistResult = withContext(Dispatchers.IO) {
-        val id = ExternalPlaylistLink.extractId(urlOrId, ExternalPlaylistSource.SPOTIFY)
+    override suspend fun fetchPlaylistRows(urlOrId: String): ExternalPlaylistResult = withContext(Dispatchers.IO) {
+        val id = extractPlaylistId(urlOrId)
             ?: throw IllegalArgumentException("That does not look like a Spotify playlist link.")
         val request = Request.Builder()
             .url("$EMBED_BASE$id")
@@ -125,8 +136,8 @@ class SpotifyPlaylistImporter @Inject constructor(
      * Unmatched rows are dropped; [ExternalImportResult.totalRows] still counts
      * them so the UI can report "N of M matched".
      */
-    suspend fun fetchAndMatch(urlOrId: String): ExternalImportResult = withContext(Dispatchers.IO) {
-        val playlist = fetchPlaylist(urlOrId)
+    override suspend fun fetchAndMatch(urlOrId: String): ExternalImportResult = withContext(Dispatchers.IO) {
+        val playlist = fetchPlaylistRows(urlOrId)
         val rows = playlist.rows
         val limiter = Semaphore(4)
         val tracks = coroutineScope {
@@ -198,7 +209,7 @@ class SpotifyPlaylistImporter @Inject constructor(
         rows = emptyList(),
     )
 
-    private companion object {
+    public companion object {
         const val EMBED_BASE = "https://open.spotify.com/embed/playlist/"
         const val SPOTIFY_TRACK_URI = "spotify:track:"
         const val SPOTIFY_PLAYLIST_URI = "spotify:playlist:"

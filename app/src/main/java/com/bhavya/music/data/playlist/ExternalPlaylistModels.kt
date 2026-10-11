@@ -15,6 +15,7 @@ enum class ExternalPlaylistSource(
 ) {
     SPOTIFY("Spotify", "spotify.com"),
     APPLE_MUSIC("Apple Music", "music.apple.com"),
+    YOUTUBE("YouTube / YouTube Music", "youtube.com"),
 }
 
 /** One row read off a provider page, before it is matched to a playable track. */
@@ -52,12 +53,19 @@ data class ExternalImportResult(
  * - `spotify:playlist:<id>`                            (URI form)
  * - `https://music.apple.com/us/playlist/<slug>/pl.<id>`
  * - `https://music.apple.com/us/playlist/<id>`         (no slug)
+ * - `https://music.youtube.com/playlist?list=<id>`
+ * - `https://www.youtube.com/playlist?list=<id>`
+ * - `https://youtube.com/playlist?list=<id>`
+ * - `https://youtu.be/playlist?list=<id>`
  */
 object ExternalPlaylistLink {
 
     private val SPOTIFY_ID = Regex("""spotify\.com/(?:[a-z]{2}(?:-[a-z]{2})?/)?playlist/([A-Za-z0-9]+)""")
     private val SPOTIFY_URI = Regex("""spotify:playlist:([A-Za-z0-9]+)""")
     private val APPLE_ID = Regex("""music\.apple\.com/[a-z]{2}(?:-[a-z]{2})?/playlist/(?:[^/]+/)?(pl\.[A-Za-z0-9]+)""")
+    private val YOUTUBE_PLAYLIST = Regex("""youtube\.com/playlist\?list=([A-Za-z0-9_-]+)""")
+    private val YOUTUBE_MUSIC_PLAYLIST = Regex("""music\.youtube\.com/playlist\?list=([A-Za-z0-9_-]+)""")
+    private val YOUTUBE_BE_PLAYLIST = Regex("""youtu\.be/playlist\?list=([A-Za-z0-9_-]+)""")
 
     /** Best-effort provider detection from a pasted string. */
     fun detect(raw: String): ExternalPlaylistSource? {
@@ -67,6 +75,11 @@ object ExternalPlaylistLink {
             return ExternalPlaylistSource.SPOTIFY
         }
         if (value.contains("music.apple.com")) return ExternalPlaylistSource.APPLE_MUSIC
+        if (value.contains("youtube.com") && value.contains("list=") ||
+            value.contains("music.youtube.com") && value.contains("list=") ||
+            value.contains("youtu.be") && value.contains("list=")) {
+            return ExternalPlaylistSource.YOUTUBE
+        }
         return null
     }
 
@@ -79,6 +92,30 @@ object ExternalPlaylistLink {
                     ?: SPOTIFY_URI.find(value)?.groupValues?.getOrNull(1)
             ExternalPlaylistSource.APPLE_MUSIC ->
                 APPLE_ID.find(value)?.groupValues?.getOrNull(1)
+            ExternalPlaylistSource.YOUTUBE -> {
+                YOUTUBE_PLAYLIST.find(value)?.groupValues?.getOrNull(1)
+                    ?: YOUTUBE_MUSIC_PLAYLIST.find(value)?.groupValues?.getOrNull(1)
+                    ?: YOUTUBE_BE_PLAYLIST.find(value)?.groupValues?.getOrNull(1)
+            }
+        }
+    }
+    
+    /** Check if the link is a playlist (vs track/album) for the detected provider */
+    fun isPlaylistLink(raw: String): Boolean {
+        val source = detect(raw)
+        return source != null && extractId(raw, source) != null
+    }
+    
+    /** Check if the link is a track/album link for a supported provider */
+    fun isTrackOrAlbumLink(raw: String): Boolean {
+        val value = raw.trim().lowercase()
+        return when {
+            value.contains("spotify.com/track/") || value.contains("spotify:track:") -> true
+            value.contains("spotify.com/album/") || value.contains("spotify:album:") -> true
+            value.contains("music.apple.com") && (value.contains("/song/") || value.contains("/album/")) -> true
+            value.contains("youtube.com/watch?v=") || value.contains("youtu.be/") && !value.contains("list=") -> true
+            value.contains("music.youtube.com/watch?v=") && !value.contains("list=") -> true
+            else -> false
         }
     }
 }

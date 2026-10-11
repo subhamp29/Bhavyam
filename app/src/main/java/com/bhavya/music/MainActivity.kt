@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import com.bhavya.music.data.playlist.ExternalPlaylistLink
 import com.bhavya.music.data.repository.LastFmAuthCallbackCoordinator
 import com.bhavya.music.ui.navigation.BhavyaNavHost
 import com.bhavya.music.ui.navigation.Screen
@@ -232,6 +233,22 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             (host == "youtube.com" || host == "www.youtube.com" ||
                 host == "m.youtube.com" || host == "music.youtube.com" || host == "youtu.be" ||
                 host == "open.spotify.com" || host == "spotify.link")
+        val isPlaylistLink = intent?.action == Intent.ACTION_VIEW &&
+            uri?.scheme != null &&
+            (uri.scheme == "http" || uri.scheme == "https") &&
+            ExternalPlaylistLink.isPlaylistLink(uri.toString())
+        val isSendWithPlaylistLink = intent?.action == Intent.ACTION_SEND &&
+            "text/plain".equals(intent.type, ignoreCase = true) &&
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { ExternalPlaylistLink.isPlaylistLink(it) } == true
+        
+        // Handle playlist links: open unified import screen
+        if (isPlaylistLink || isSendWithPlaylistLink) {
+            val link = if (isPlaylistLink) uri.toString() else intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+            runCatching { appRouteNavigator.get().navigateToExternalImport(link) }
+            return
+        }
+        
+        // Track links and other music links: handle playback
         val hasPlaybackTarget = isSupportedMusicLink || intent?.action == Intent.ACTION_SEND
         if (hasPlaybackTarget) {
             runCatching { linkPlaybackResolver.get().handleIntent(intent) }

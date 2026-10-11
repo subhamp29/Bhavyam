@@ -48,11 +48,22 @@ import okhttp3.Request
 class AppleMusicPlaylistImporter @Inject constructor(
     okHttpClient: OkHttpClient,
     private val innerTube: InnerTubeMusicApi,
-) {
+) : PlaylistProvider {
+    override val source: ExternalPlaylistSource = ExternalPlaylistSource.APPLE_MUSIC
+    
     private val client = okHttpClient.newBuilder()
         .callTimeout(20, TimeUnit.SECONDS)
         .build()
     private val json = Json { ignoreUnknownKeys = true }
+
+    override fun canHandle(raw: String): Boolean {
+        val value = raw.trim().lowercase()
+        return value.contains("music.apple.com")
+    }
+    
+    override fun extractPlaylistId(raw: String): String? {
+        return ExternalPlaylistLink.extractId(raw, source)
+    }
 
     /**
      * Pure page parser — no network, safe to unit test directly.
@@ -79,7 +90,7 @@ class AppleMusicPlaylistImporter @Inject constructor(
      * @throws IllegalArgumentException when the input is neither a URL nor a
      *         recognisable Apple Music playlist id.
      */
-    suspend fun fetchPlaylist(urlOrId: String): ExternalPlaylistResult = withContext(Dispatchers.IO) {
+    override suspend fun fetchPlaylistRows(urlOrId: String): ExternalPlaylistResult = withContext(Dispatchers.IO) {
         val input = urlOrId.trim()
         val isUrl = input.startsWith("http://", ignoreCase = true) || input.startsWith("https://", ignoreCase = true)
         // Users often paste the host without a scheme ("music.apple.com/us/playlist/…").
@@ -106,8 +117,8 @@ class AppleMusicPlaylistImporter @Inject constructor(
      * Rows that find no confident match are dropped and surface as
      * `totalRows - matchedCount` in the returned [ExternalImportResult].
      */
-    suspend fun fetchAndMatch(urlOrId: String): ExternalImportResult = withContext(Dispatchers.IO) {
-        val parsed = fetchPlaylist(urlOrId)
+    override suspend fun fetchAndMatch(urlOrId: String): ExternalImportResult = withContext(Dispatchers.IO) {
+        val parsed = fetchPlaylistRows(urlOrId)
         val limiter = Semaphore(4)
         val tracks = coroutineScope {
             parsed.rows.map { row ->

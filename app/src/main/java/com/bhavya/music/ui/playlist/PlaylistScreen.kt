@@ -3,6 +3,11 @@ package com.bhavya.music.ui.playlist
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -46,9 +51,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -85,6 +92,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -99,6 +107,7 @@ import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.data.playlist.LIKED_SONGS_MODE
 import com.bhavya.music.data.playlist.isYouTubeOnly
 import com.bhavya.music.data.playlist.isDeletable
+import com.bhavya.music.data.playlist.ExternalPlaylistLink
 import com.bhavya.music.playback.toPlayableTrack
 import com.bhavya.music.ui.common.ArtworkImage
 import com.bhavya.music.ui.common.ExpressiveHeader
@@ -112,6 +121,7 @@ import com.bhavya.music.ui.theme.ExpressivePillShape
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 /**
  * Faithful port of playlist.js's saved-playlists screen (§4): card list
@@ -126,6 +136,7 @@ import java.util.Locale
 fun PlaylistScreen(
     onOpenPlaylist: (Long) -> Unit = {},
     viewModel: PlaylistViewModel = hiltViewModel(),
+    onOpenExternalImport: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -144,10 +155,30 @@ fun PlaylistScreen(
         }
         coverPickerPlaylistId = null
     }
+    var addMenuExpanded by remember { mutableStateOf(false) }
+    
+    // Clipboard hint state — the dismissed set lives in the ViewModel so it
+    // survives tab switches and returning from a pushed screen.
+    var showClipboardHint by remember { mutableStateOf(false) }
+    var clipboardLink by remember { mutableStateOf<String?>(null) }
+    val dismissedLinks = state.dismissedClipboardLinks
+    
+    // Use AppRouteNavigator to navigate with link
+    val appRouteNavigator = androidx.hilt.navigation.compose.hiltViewModel<com.bhavya.music.ui.navigation.AppRouteNavBridge>().routeNavigator
+    val clipboardManager = LocalClipboardManager.current
 
     // Re-reads from Room whenever this tab regains visibility — this is how
     // a playlist just saved by Generate shows up here without polling.
+    // The clipboard is only touched here (on becoming visible), never in the
+    // background: an unsupported / non-playlist clipboard is ignored.
     LifecycleResumeEffect(Unit) {
+        val text = clipboardManager.getText()?.text.orEmpty()
+        if (text.isNotBlank() && text !in dismissedLinks && ExternalPlaylistLink.isPlaylistLink(text)) {
+            clipboardLink = text
+            showClipboardHint = true
+        } else if (text.isBlank() || text !in dismissedLinks) {
+            showClipboardHint = false
+        }
         viewModel.load()
         onPauseOrDispose { }
     }
@@ -172,28 +203,58 @@ fun PlaylistScreen(
                 } else {
                     "${state.playlists.size} Playlists \u00b7 ${state.playlists.sumOf { it.remoteTrackCount ?: it.tracks.size }} Tracks"
                 },
-                actions = {
-                    if (selectedPlaylists.isNotEmpty()) {
-                        IconButton(
-                            onClick = { showMultipleDeleteConfirm = true },
-                            modifier = Modifier.size(40.dp),
-                        ) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete selected", tint = MaterialTheme.colorScheme.error)
-                        }
-                        IconButton(
-                            onClick = { selectedPlaylists = setOf() },
-                            modifier = Modifier.size(40.dp),
-                        ) {
-                            Icon(Icons.Filled.Close, contentDescription = "Clear selection")
-                        }
-                    } else {
-                        IconButton(
-                            onClick = viewModel::openCreateDialog,
-                            modifier = Modifier.size(40.dp),
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = "Create custom playlist")
-                        }
-                        Box {
+actions = {
+                        if (selectedPlaylists.isNotEmpty()) {
+                            IconButton(
+                                onClick = { showMultipleDeleteConfirm = true },
+                                modifier = Modifier.size(40.dp),
+                            ) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete selected", tint = MaterialTheme.colorScheme.error)
+                            }
+                            IconButton(
+                                onClick = { selectedPlaylists = setOf() },
+                                modifier = Modifier.size(40.dp),
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = "Clear selection")
+                            }
+                        } else {
+                            Box {
+                                Surface(
+                                    onClick = { addMenuExpanded = true },
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    tonalElevation = 1.dp,
+                                    modifier = Modifier.size(40.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Add,
+                                        contentDescription = "Add playlist",
+                                        modifier = Modifier.size(20.dp).padding(10.dp),
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = addMenuExpanded,
+                                    onDismissRequest = { addMenuExpanded = false },
+                                    shape = RoundedCornerShape(22.dp),
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    tonalElevation = 4.dp,
+                                    shadowElevation = 10.dp,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Create custom playlist") },
+                                        leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                                        onClick = { viewModel.openCreateDialog(); addMenuExpanded = false },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Import from link") },
+                                        leadingIcon = { Icon(Icons.Filled.Link, contentDescription = null) },
+                                        onClick = { onOpenExternalImport(); addMenuExpanded = false },
+                                    )
+                                }
+                            }
+                            Box {
                             Surface(
                                 onClick = { sortMenuExpanded = true },
                                 shape = RoundedCornerShape(50),
@@ -247,6 +308,76 @@ fun PlaylistScreen(
                     }
                 },
             )
+
+            // Clipboard hint chip
+            AnimatedVisibility(
+                visible = showClipboardHint,
+                enter = androidx.compose.animation.slideInVertically(initialOffsetY = { -it }) + androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { -it }) + androidx.compose.animation.fadeOut(),
+            ) {
+                Surface(
+                    shape = com.bhavya.music.ui.theme.ExpressivePillShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .adaptiveContentWidth(maxWidth = 860.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentPaste,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Import copied playlist?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            clipboardLink?.let { link ->
+                                val source = ExternalPlaylistLink.detect(link)
+                                Text(
+                                    "Paste: ${source?.label ?: "Playlist"} link detected",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                )
+                            }
+                        }
+                        TextButton(
+                            onClick = {
+                                clipboardLink?.let { link ->
+                                    appRouteNavigator.navigateToExternalImport(link)
+                                    viewModel.rememberDismissedClipboardLink(link)
+                                }
+                                showClipboardHint = false
+                            }
+                        ) {
+                            Text("Import", fontWeight = FontWeight.Bold)
+                        }
+                        IconButton(
+                            onClick = {
+                                clipboardLink?.let { viewModel.rememberDismissedClipboardLink(it) }
+                                showClipboardHint = false
+                            },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Dismiss",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+            }
 
             Box(
                 modifier = Modifier

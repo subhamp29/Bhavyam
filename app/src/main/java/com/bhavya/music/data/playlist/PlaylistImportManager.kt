@@ -18,6 +18,7 @@ class PlaylistImportManager @Inject constructor(
     private val csvPlaylistImporter: CsvPlaylistImporter,
     private val spotifyPlaylistImporter: SpotifyPlaylistImporter,
     private val appleMusicPlaylistImporter: AppleMusicPlaylistImporter,
+    private val youTubePlaylistProvider: YouTubePlaylistProvider,
 ) {
 
     companion object {
@@ -27,6 +28,22 @@ class PlaylistImportManager @Inject constructor(
             return clean == "LM" || clean == "VLLM" || clean.removePrefix("VL") == "LM" ||
                 clean == "LL" || clean == "VLLL" || clean.removePrefix("VL") == "LL" ||
                 clean == "FEmusic_liked_videos"
+        }
+        
+        /** Returns the provider for a given URL/string, or null if unrecognized. */
+        fun detectProvider(
+            raw: String,
+            spotify: SpotifyPlaylistImporter,
+            appleMusic: AppleMusicPlaylistImporter,
+            youTube: YouTubePlaylistProvider,
+        ): PlaylistProvider? {
+            val value = raw.trim().lowercase()
+            return when {
+                spotify.canHandle(value) -> spotify
+                appleMusic.canHandle(value) -> appleMusic
+                youTube.canHandle(value) -> youTube
+                else -> null
+            }
         }
     }
 
@@ -121,7 +138,7 @@ class PlaylistImportManager @Inject constructor(
     }
 
     /**
-     * Imports a **public** Spotify or Apple Music playlist from a pasted link.
+     * Imports a **public** Spotify, Apple Music, or YouTube playlist from a pasted link.
      *
      * The provider page is scraped (no API key or account needed), each row is
      * matched to a playable track, and the result is stored as a `custom`
@@ -131,13 +148,10 @@ class PlaylistImportManager @Inject constructor(
     suspend fun importExternalPlaylist(
         url: String,
     ): Pair<SavedPlaylist, ExternalImportResult> = withContext(Dispatchers.IO) {
-        val source = ExternalPlaylistLink.detect(url)
-            ?: throw IllegalArgumentException("Paste a Spotify or Apple Music playlist link.")
+        val provider = detectProvider(url, spotifyPlaylistImporter, appleMusicPlaylistImporter, youTubePlaylistProvider)
+            ?: throw IllegalArgumentException("Paste a Spotify, Apple Music, or YouTube playlist link.")
 
-        val result = when (source) {
-            ExternalPlaylistSource.SPOTIFY -> spotifyPlaylistImporter.fetchAndMatch(url)
-            ExternalPlaylistSource.APPLE_MUSIC -> appleMusicPlaylistImporter.fetchAndMatch(url)
-        }
+        val result = provider.fetchAndMatch(url)
 
         require(result.tracks.isNotEmpty()) {
             "No tracks from that playlist could be matched. Make sure the playlist is public."
@@ -145,7 +159,7 @@ class PlaylistImportManager @Inject constructor(
 
         val saved = playlistRepository.save(
             title = result.suggestedTitle,
-            subtitle = "${result.source.label} Import \u2022 ${result.matchedCount} imported, ${result.totalRows - result.matchedCount} skipped",
+            subtitle = "${result.source.label} Import \u2027 ${result.matchedCount} imported, ${result.totalRows - result.matchedCount} skipped",
             mode = "custom",
             tracks = result.tracks,
         )

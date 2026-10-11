@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,14 +40,19 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +81,7 @@ import com.bhavya.music.ui.player.LocalMiniPlayerScrollClearance
 private const val PREVIEW_ROW_LIMIT = 50
 
 /**
- * Paste-a-link importer for public Spotify and Apple Music playlists.
+ * Paste-a-link importer for public Spotify, Apple Music, and YouTube playlists.
  *
  * Flow: paste (or clipboard-paste) a link → Preview reads the public track
  * list → the bottom CTA runs the real import through
@@ -87,11 +94,19 @@ fun ExternalPlaylistImportScreen(
     onBack: () -> Unit,
     onImportSuccess: (SavedPlaylist) -> Unit,
     viewModel: ExternalPlaylistImportViewModel = hiltViewModel(),
+    prefilledLink: String? = null,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val haptic = LocalHapticFeedback.current
+
+    // Handle prefilled link from share sheet / deep link
+    androidx.compose.runtime.LaunchedEffect(prefilledLink) {
+        if (prefilledLink?.isNotBlank() == true) {
+            viewModel.onLinkPasted(prefilledLink)
+        }
+    }
 
     val preview = state.preview
     val rows = preview?.rows.orEmpty()
@@ -106,7 +121,7 @@ fun ExternalPlaylistImportScreen(
         ) {
             ExpressiveHeader(
                 title = "Import Playlist",
-                subtitle = "Spotify & Apple Music links",
+                subtitle = "Spotify, Apple Music & YouTube links",
                 onBack = onBack,
             )
 
@@ -138,7 +153,7 @@ fun ExternalPlaylistImportScreen(
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
-                                "Paste a public Spotify or Apple Music playlist link. Bhavyam reads every track off the playlist page and matches them to playable songs — no account or API key needed.",
+                                "Paste a public Spotify, Apple Music, or YouTube playlist link. Bhavyam reads every track off the playlist page and matches them to playable songs — no account or API key needed.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -146,7 +161,7 @@ fun ExternalPlaylistImportScreen(
                             OutlinedTextField(
                                 value = state.link,
                                 onValueChange = viewModel::onLinkChange,
-                                placeholder = { Text("https://open.spotify.com/playlist/...") },
+                                placeholder = { Text("https://open.spotify.com/playlist/... or https://music.youtube.com/playlist?list=...") },
                                 leadingIcon = {
                                     Icon(Icons.Filled.Link, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 },
@@ -159,7 +174,7 @@ fun ExternalPlaylistImportScreen(
                                         IconButton(onClick = {
                                             val text = clipboard.getText()?.text.orEmpty()
                                             if (text.isNotBlank()) {
-                                                viewModel.onLinkChange(text)
+                                                viewModel.onLinkPasted(text)
                                             }
                                         }) {
                                             Icon(Icons.Filled.ContentPaste, contentDescription = "Paste", tint = MaterialTheme.colorScheme.primary)
@@ -221,6 +236,21 @@ fun ExternalPlaylistImportScreen(
                                 modifier = Modifier.padding(18.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
+                                // Provider chip
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(bottom = 4.dp),
+                                ) {
+                                    Text(
+                                        preview.source.label,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    )
+                                }
+                                
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(
@@ -241,18 +271,6 @@ fun ExternalPlaylistImportScreen(
                                             )
                                         }
                                     }
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    ) {
-                                        Text(
-                                            preview.source.label,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                        )
-                                    }
                                 }
 
                                 Text(
@@ -263,12 +281,23 @@ fun ExternalPlaylistImportScreen(
 
                                 state.lastResult?.let { result ->
                                     val skipped = (result.totalRows - result.matchedCount).coerceAtLeast(0)
-                                    Text(
-                                        "${result.matchedCount} imported, $skipped skipped",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            "${result.matchedCount} imported, $skipped skipped",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        if (skipped > 0 && state.skippedTracks.isNotEmpty()) {
+                                            TextButton(
+                                                onClick = viewModel::openSkippedTracks,
+                                                enabled = !state.isImporting,
+                                            ) {
+                                                Text("View skipped")
+                                            }
+                                        }
+                                    }
                                 }
 
                                 val summary = state.progress
@@ -375,6 +404,112 @@ fun ExternalPlaylistImportScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 }
+            }
+        }
+    }
+
+    // Skipped tracks sheet
+    if (state.showSkippedSheet && state.skippedTracks.isNotEmpty()) {
+        SkippedTracksSheet(
+            skippedTracks = state.skippedTracks,
+            onDismiss = viewModel::dismissSkippedSheet,
+        )
+    }
+}
+
+// Skipped tracks modal
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SkippedTracksSheet(
+    skippedTracks: List<ExternalTrackRow>,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .adaptiveContentWidth(maxWidth = 640.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "${skippedTracks.size} Skipped Tracks",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        "These tracks couldn't be matched to playable songs.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 300.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                items(
+                    items = skippedTracks,
+                    key = { track -> track.title to track.artist }
+                ) { track ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Filled.MusicNote,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                track.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                track.artist,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = onDismiss,
+                shape = CircleShape,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+            ) {
+                Text("Close", fontWeight = FontWeight.Bold)
             }
         }
     }

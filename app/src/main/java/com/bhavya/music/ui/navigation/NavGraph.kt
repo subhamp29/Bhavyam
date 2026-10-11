@@ -13,12 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,6 +37,7 @@ import com.bhavya.music.ui.common.PredictiveBackScreen
 import com.bhavya.music.ui.common.ExpressiveLoadingIndicator
 import com.bhavya.music.ui.common.ExpressiveMotion
 import com.bhavya.music.ui.genres.GenreExplorer
+import com.bhavya.music.ui.settings.ExternalPlaylistImportViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -280,6 +281,9 @@ fun BhavyaNavHost(
                 onOpenDownloads = {
                     navController.navigate(Screen.Downloads.route)
                 },
+                onOpenExternalImport = {
+                    navController.navigate(Screen.ExternalPlaylistImport.route)
+                },
             )
         }
 
@@ -427,12 +431,20 @@ fun BhavyaNavHost(
         }
 
         composable(Screen.ExternalPlaylistImport.route) {
+            val appRouteBridge: AppRouteNavBridge = hiltViewModel()
+            val pendingLink = appRouteBridge.routeNavigator.pendingExternalLink.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingLink.value) {
+                if (pendingLink.value != null) {
+                    appRouteBridge.routeNavigator.consumeExternalLink()
+                }
+            }
             PredictiveBackScreen(onBack = { navController.popBackStack() }) {
                 com.bhavya.music.ui.settings.ExternalPlaylistImportScreen(
                     onBack = { navController.popBackStack() },
                     onImportSuccess = {
                         navController.popBackStack()
                     },
+                    prefilledLink = pendingLink.value,
                 )
             }
         }

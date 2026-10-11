@@ -53,6 +53,9 @@ data class PlaylistUiState(
     val renamePlaylistId: Long? = null,
     val detailPlaylist: SavedPlaylist? = null,
     val isDetailLoading: Boolean = false,
+    /** Clipboard playlist links the user already dismissed, so the
+     *  "Import copied playlist?" chip never nags about the same link again. */
+    val dismissedClipboardLinks: Set<String> = emptySet(),
 )
 
 /**
@@ -310,6 +313,13 @@ class PlaylistViewModel @Inject constructor(
 
     fun openCreateDialog() = _uiState.update { it.copy(createDialogVisible = true) }
     fun dismissCreateDialog() = _uiState.update { it.copy(createDialogVisible = false) }
+
+    /** Remembers a clipboard playlist link the user dismissed, so the
+     *  "Import copied playlist?" chip is never offered for it again. */
+    fun rememberDismissedClipboardLink(link: String) {
+        if (link.isBlank()) return
+        _uiState.update { it.copy(dismissedClipboardLinks = it.dismissedClipboardLinks + link) }
+    }
 
     fun createCustomPlaylist(title: String) {
         if (title.isBlank()) return
