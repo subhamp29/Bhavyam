@@ -61,8 +61,8 @@ defaultConfig {
         applicationId = "com.bhavya.music"
         minSdk = (project.findProperty("minSdk") as? String)?.toIntOrNull() ?: 29
         targetSdk = 35
-        versionCode = 31
-        versionName = "1.9"
+        versionCode = 32
+        versionName = "2.0"
 
         // Native secrets (addon client lock) live strictly in native .so via
         // SecretsBridge_generated.h (tools/generate_native_secrets.py).
