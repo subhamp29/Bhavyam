@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bhavyam</string>
     <string name="widget_name">Bhavyam Player</string>
@@ -54,16 +54,16 @@
     <string name="settings_yt_history">Sync Playback to YouTube Music History</string>
 
     <string name="settings_downloads_title">Downloads &amp; Offline Music</string>
-    <string name="settings_downloads_sub">%1$d song(s) • %2$s • Music/%3$s</string>
-    <string name="settings_downloads_sub_structured">%1$d song(s) • %2$s • Music/%3$s • %4$s</string>
-    <string name="settings_downloads_sub_custom">%1$d song(s) • %2$s • %3$s</string>
-    <string name="settings_downloads_sub_structured_custom">%1$d song(s) • %2$s • %3$s • %4$s</string>
+    <string name="settings_downloads_sub">%1$d song(s) â€¢ %2$s â€¢ Music/%3$s</string>
+    <string name="settings_downloads_sub_structured">%1$d song(s) â€¢ %2$s â€¢ Music/%3$s â€¢ %4$s</string>
+    <string name="settings_downloads_sub_custom">%1$d song(s) â€¢ %2$s â€¢ %3$s</string>
+    <string name="settings_downloads_sub_structured_custom">%1$d song(s) â€¢ %2$s â€¢ %3$s â€¢ %4$s</string>
     <string name="settings_downloads_empty">No offline songs downloaded</string>
 
     <string name="settings_modules_title">Provider Modules</string>
     <string name="settings_modules_sub">Extra sources queried alongside the addon</string>
     <string name="settings_modules_query_title">Query modules during playback</string>
-    <string name="settings_modules_query_sub">On • module hits play instantly when the addon misses</string>
+    <string name="settings_modules_query_sub">On â€¢ module hits play instantly when the addon misses</string>
     <string name="settings_modules_add">Add module</string>
     <string name="settings_modules_add_sub">Install an encrypted .lwp package</string>
     <string name="settings_modules_empty">No modules installed</string>
@@ -87,7 +87,7 @@
     <string name="settings_section_experimental">Experimental</string>
     <string name="settings_liquid_glass">Liquid Glass</string>
     <string name="settings_liquid_glass_sub">iOS-style translucent materials across the app</string>
-    <string name="settings_liquid_glass_unsupported">Unavailable on this device — needs Android 12 or newer</string>
+    <string name="settings_liquid_glass_unsupported">Unavailable on this device â€” needs Android 12 or newer</string>
     <string name="settings_lyrics_animation">Lyrics Animation</string>
     <string name="settings_lyrics_provider">Lyrics provider</string>
     <string name="settings_lyrics_provider_desc">Tried first for every song. If it returns nothing, the app automatically falls through to the other providers.</string>
@@ -100,7 +100,7 @@
     <string name="settings_rotating_background_on">Animate fluid rotating artwork in player and lyrics view</string>
     <string name="settings_rotating_background_off">Static blurred background (recommended for Android 11 and below)</string>
     <string name="settings_studio_clarity">Studio Master Clarity</string>
-    <string name="settings_studio_clarity_on">Crystal-clear open sound • airy detail • deep clean separation</string>
+    <string name="settings_studio_clarity_on">Crystal-clear open sound â€¢ airy detail â€¢ deep clean separation</string>
     <string name="settings_studio_clarity_off">Original unshaped output</string>
     <string name="settings_canvas_enabled">Animated Album Canvas</string>
     <string name="settings_canvas_enabled_sub">Stream motion artwork loops from Apple Music, Tidal and community</string>
@@ -108,6 +108,16 @@
     <string name="settings_canvas_full_bleed_sub">Full screen edge-to-edge artwork for static and animated tracks</string>
     <string name="settings_canvas_cellular">Canvas Over Cellular</string>
     <string name="settings_canvas_cellular_sub">Download motion artwork over mobile data (cached after first loop)</string>
+
+    <string name="settings_beat_reactive">Beat Reactive Visuals</string>
+    <string name="settings_beat_reactive_sub">Artwork responds to bass, beats and loudness in real time</string>
+    <string name="settings_beat_reactive_on">Shader effects active • hue shift, brightness pulse, twist wave</string>
+    <string name="settings_beat_reactive_off">Static background • no beat-driven animation</string>
+    <string name="settings_beat_reactive_intensity">Beat Reactive Intensity</string>
+    <string name="settings_beat_reactive_intensity_sub">%1$.0f%% • master scale for all beat-driven effects</string>
+    <string name="settings_beat_reactive_sync">Beat Reactive Sync Offset</string>
+    <string name="settings_beat_reactive_sync_sub">%1$d ms • positive = visuals early, negative = visuals late</string>
+
 
     <string name="settings_section_audio">Audio &amp; Streaming</string>
     <string name="settings_streaming_quality">Streaming Quality</string>
@@ -123,7 +133,7 @@
 
     <string name="settings_section_imports">Library &amp; Playlist Imports</string>
     <string name="settings_import_file">Import Playlist from File</string>
-    <string name="settings_import_file_sub">CSV, TSV, M3U/M3U8, or TXT • uncertain tracks are skipped</string>
+    <string name="settings_import_file_sub">CSV, TSV, M3U/M3U8, or TXT â€¢ uncertain tracks are skipped</string>
 
     <string name="settings_section_scrobbler">Scrobbler</string>
     <string name="settings_scrobble">Scrobble Music</string>
@@ -182,7 +192,7 @@
     <string name="home_section_fresh_title">Fresh finds</string>
     <string name="home_section_fresh_sub">New tracks beyond your rotation</string>
     <string name="home_section_jump_title">Jump back in</string>
-    <string name="home_section_jump_sub">Recently played · listen again</string>
+    <string name="home_section_jump_sub">Recently played Â· listen again</string>
     <string name="home_section_mixes_title">Mixes to explore</string>
     <string name="home_section_mixes_sub">Endless artist radio mixes</string>
     <string name="home_section_spotlight_title">Spotlight</string>
@@ -205,7 +215,7 @@
     <string name="dl_folder_desc">New downloads are saved under Music/. Existing files stay where they are and keep playing.</string>
     <string name="dl_folder_name">Folder name</string>
     <string name="dl_folder_will_save">Will save to Music/%1$s</string>
-    <string name="dl_menu_flat">Flat • Music/%1$s</string>
+    <string name="dl_menu_flat">Flat â€¢ Music/%1$s</string>
     <string name="dl_org">Folder organization</string>
     <string name="dl_org_desc">New downloads are arranged under Music/%1$s/. Existing files stay where they are.</string>
     <string name="dl_use_album_artist">Use album artist for folders</string>
@@ -214,19 +224,19 @@
     <string name="dl_primary_only_sub">Strip feat. &amp; collaborators from folder names</string>
     <string name="dl_change_folder">Change folder</string>
     <string name="dl_location">Download location</string>
-    <string name="dl_location_desc">New downloads are saved straight into this folder — including folders on your SD card. Existing files stay where they are and keep playing.</string>
-    <string name="dl_location_default">Music/%1$s • internal storage</string>
-    <string name="dl_location_choose">Choose folder…</string>
+    <string name="dl_location_desc">New downloads are saved straight into this folder â€” including folders on your SD card. Existing files stay where they are and keep playing.</string>
+    <string name="dl_location_default">Music/%1$s â€¢ internal storage</string>
+    <string name="dl_location_choose">Choose folderâ€¦</string>
     <string name="dl_location_reset">Reset to default</string>
     <string name="dl_location_unavailable">Previously selected folder is unavailable (SD card removed or permission revoked). Downloads pause until you choose a folder again.</string>
-    <string name="dl_location_unavailable_short">Unavailable — tap to reselect</string>
-    <string name="dl_saved_custom">Saved in %1$s • %2$d song(s)</string>
+    <string name="dl_location_unavailable_short">Unavailable â€” tap to reselect</string>
+    <string name="dl_saved_custom">Saved in %1$s â€¢ %2$d song(s)</string>
     <string name="dl_open_location">Open %1$s</string>
-    <string name="dl_saved_flat">Saved in Music/%1$s/ • %2$d song(s)</string>
-    <string name="dl_saved_structured">Music/%1$s/ • %2$s • %3$d song(s)</string>
+    <string name="dl_saved_flat">Saved in Music/%1$s/ â€¢ %2$d song(s)</string>
+    <string name="dl_saved_structured">Music/%1$s/ â€¢ %2$s â€¢ %3$d song(s)</string>
     <string name="dl_clear_history">This will clear the history list in the app. Your audio files in Music/%1$s will stay safely on your device.</string>
     <string name="dl_delete_all">This will permanently delete all %1$d downloaded audio files from Music/%2$s and free up %3$s of storage.</string>
-    <string name="dl_empty_hint">Tap the 3-dot menu on any song and select \"Download\". Tracks are saved at your chosen Settings → Audio &amp; Streaming → Download Quality directly to your device\'s Music folder (see Download folder in the ⋮ menu) with embedded metadata &amp; synchronized LRCLIB lyrics.</string>
+    <string name="dl_empty_hint">Tap the 3-dot menu on any song and select \"Download\". Tracks are saved at your chosen Settings â†’ Audio &amp; Streaming â†’ Download Quality directly to your device\'s Music folder (see Download folder in the â‹® menu) with embedded metadata &amp; synchronized LRCLIB lyrics.</string>
     <string name="dl_open_folder">Open Music/%1$s</string>
     <string name="dl_open_manager">Open in File Manager</string>
     <string name="dl_clear_history_only">Clear Download History Only</string>
@@ -238,7 +248,7 @@
     <string name="dl_storage_used">Storage: %1$s</string>
     <string name="dl_files">Files</string>
     <string name="dl_empty_title">No Downloaded Songs</string>
-    <string name="dl_menu_structured">%1$s • Music/%2$s</string>
+    <string name="dl_menu_structured">%1$s â€¢ Music/%2$s</string>
     <string name="dl_struct_flat_title">Download folder only</string>
     <string name="dl_struct_flat_short">Flat</string>
     <string name="dl_struct_artist_album_title">Artist / Album</string>
@@ -261,7 +271,7 @@
     <string name="signal_stream">Stream</string>
     <string name="signal_playing">Playing</string>
     <string name="signal_idle">Idle</string>
-    <string name="signal_measuring">measuring…</string>
+    <string name="signal_measuring">measuringâ€¦</string>
     <string name="signal_glitches">Glitches</string>
     <string name="signal_grant_usb">Grant USB access</string>
     <string name="signal_bit_perfect">BIT-PERFECT</string>
@@ -269,7 +279,7 @@
     <string name="signal_resampled_dac">DAC RESAMPLED</string>
     <string name="signal_shared_track">Shared AudioTrack</string>
     <string name="signal_direct_track">Direct USB output</string>
-    <string name="signal_verdict_ok">Bit-perfect path verified — PCM untouched to the DAC</string>
+    <string name="signal_verdict_ok">Bit-perfect path verified â€” PCM untouched to the DAC</string>
     <string name="signal_label_source">Source</string>
     <string name="signal_label_resampler">App resampler</string>
     <string name="signal_label_dsp">DSP chain</string>
@@ -279,50 +289,50 @@
     <string name="signal_label_mixer">Android mixer</string>
     <string name="signal_label_output">Output</string>
     <string name="signal_detail_no_stream">No active stream</string>
-    <string name="signal_detail_src">%1$s • %2$d-bit / %3$d Hz</string>
-    <string name="signal_detail_src_nobit">%1$s • %2$d Hz</string>
+    <string name="signal_detail_src">%1$s â€¢ %2$d-bit / %3$d Hz</string>
+    <string name="signal_detail_src_nobit">%1$s â€¢ %2$d Hz</string>
     <string name="signal_detail_src_unknown">Unknown source sample rate</string>
-    <string name="signal_detail_resample_bypass">Bypassed — %1$d Hz in / out</string>
-    <string name="signal_detail_resample_active">Active — %1$d Hz → %2$d Hz</string>
-    <string name="signal_detail_resample_dac_unsupported">DAC unsupported (%1$d Hz) → Resampled to %2$d Hz (libsoxr)</string>
+    <string name="signal_detail_resample_bypass">Bypassed â€” %1$d Hz in / out</string>
+    <string name="signal_detail_resample_active">Active â€” %1$d Hz â†’ %2$d Hz</string>
+    <string name="signal_detail_resample_dac_unsupported">DAC unsupported (%1$d Hz) â†’ Resampled to %2$d Hz (libsoxr)</string>
     <string name="signal_detail_resample_unresolved">Output rate unresolved</string>
-    <string name="signal_detail_dsp_off">Bit-Perfect off — enable it in Settings</string>
+    <string name="signal_detail_dsp_off">Bit-Perfect off â€” enable it in Settings</string>
     <string name="signal_detail_dsp_crossfade">Crossfade is mixing two streams</string>
-    <string name="signal_detail_dsp_bypass">Bypassed — EQ, clarity &amp; effects off</string>
-    <string name="signal_detail_tempo_ok">1.00x — no pitch processing</string>
-    <string name="signal_detail_tempo_active">%1$sx — resampling active</string>
-    <string name="signal_detail_gain_unity">0.0 dB — unity gain</string>
-    <string name="signal_detail_gain_scaled">Gain %1$sx — unity required (ducking or fade active)</string>
-    <string name="signal_detail_sysvol_hw">Hardware volume — no digital scaling</string>
-    <string name="signal_detail_sysvol_max">MAX — no digital attenuation</string>
-    <string name="signal_detail_sysvol_scaled">%1$d/%2$d — digital attenuation before DAC</string>
+    <string name="signal_detail_dsp_bypass">Bypassed â€” EQ, clarity &amp; effects off</string>
+    <string name="signal_detail_tempo_ok">1.00x â€” no pitch processing</string>
+    <string name="signal_detail_tempo_active">%1$sx â€” resampling active</string>
+    <string name="signal_detail_gain_unity">0.0 dB â€” unity gain</string>
+    <string name="signal_detail_gain_scaled">Gain %1$sx â€” unity required (ducking or fade active)</string>
+    <string name="signal_detail_sysvol_hw">Hardware volume â€” no digital scaling</string>
+    <string name="signal_detail_sysvol_max">MAX â€” no digital attenuation</string>
+    <string name="signal_detail_sysvol_scaled">%1$d/%2$d â€” digital attenuation before DAC</string>
     <string name="signal_detail_unreadable">Unreadable</string>
-    <string name="signal_detail_mixer_ok">No platform SRC — mixer at %1$d Hz</string>
-    <string name="signal_detail_bit_perfect_unavailable">Nominal mixer rate %1$d Hz — bit-perfect mode not configured</string>
+    <string name="signal_detail_mixer_ok">No platform SRC â€” mixer at %1$d Hz</string>
+    <string name="signal_detail_bit_perfect_unavailable">Nominal mixer rate %1$d Hz â€” bit-perfect mode not configured</string>
     <string name="signal_detail_bit_perfect_configured">Android accepted the bit-perfect USB output configuration</string>
-    <string name="signal_detail_usb_exclusive">USB exclusive — mixer bypassed, DAC owns the clock</string>
-    <string name="signal_detail_mixer_not_exclusive">Android mixer path — not exclusive usbdevfs</string>
-    <string name="signal_detail_usb_exclusive_route">Exclusive usbdevfs — %1$s</string>
+    <string name="signal_detail_usb_exclusive">USB exclusive â€” mixer bypassed, DAC owns the clock</string>
+    <string name="signal_detail_mixer_not_exclusive">Android mixer path â€” not exclusive usbdevfs</string>
+    <string name="signal_detail_usb_exclusive_route">Exclusive usbdevfs â€” %1$s</string>
     <string name="signal_detail_usb_clock_ok">DAC clock matches the source rate (GET_CUR)</string>
-    <string name="signal_detail_usb_clock_fallback">DAC clock fallback (%1$d Hz unsupported → %2$d Hz)</string>
+    <string name="signal_detail_usb_clock_fallback">DAC clock fallback (%1$d Hz unsupported â†’ %2$d Hz)</string>
     <string name="signal_detail_usb_clock_mismatch">DAC clock did not confirm the source rate</string>
-    <string name="signal_detail_usb_hw_vol">UAC Feature Unit volume — PCM unscaled</string>
-    <string name="signal_detail_usb_sysvol_unused">USB exclusive — Android mixer volume unused</string>
+    <string name="signal_detail_usb_hw_vol">UAC Feature Unit volume â€” PCM unscaled</string>
+    <string name="signal_detail_usb_sysvol_unused">USB exclusive â€” Android mixer volume unused</string>
     <string name="signal_detail_route_unverified">DAC routing requested; actual output route is not verified</string>
-    <string name="signal_detail_exclusive_failed">Exclusive failed: %1$s — using shared mixer</string>
+    <string name="signal_detail_exclusive_failed">Exclusive failed: %1$s â€” using shared mixer</string>
     <string name="settings_bit_perfect_on_detail">DSP bypassed; USB DACs use exclusive usbdevfs (gold badge only when the DAC clock matches)</string>
     <string name="settings_bit_perfect_off_detail">Bypass DSP and, with a USB DAC, stream exclusive usbdevfs to the device</string>
-    <string name="signal_detail_mixer_src">Resamples %1$d Hz → %2$d Hz</string>
+    <string name="signal_detail_mixer_src">Resamples %1$d Hz â†’ %2$d Hz</string>
     <string name="signal_detail_mixer_unreadable">Mixer rate unreadable</string>
     <string name="signal_detail_no_dac">No USB DAC connected</string>
-    <string name="signal_detail_usb_perm">USB permission missing — grant it below</string>
+    <string name="signal_detail_usb_perm">USB permission missing â€” grant it below</string>
     <string name="signal_detail_not_routed">Not routed to %1$s</string>
-    <string name="signal_detail_usb_ok_plain">USB DAC — %1$s</string>
-    <string name="signal_detail_usb_ok_accepts">USB DAC — %1$s • DAC accepts %2$d Hz</string>
-    <string name="signal_detail_usb_ok_rejects">USB DAC — %1$s • %2$d Hz not in DAC descriptor</string>
+    <string name="signal_detail_usb_ok_plain">USB DAC â€” %1$s</string>
+    <string name="signal_detail_usb_ok_accepts">USB DAC â€” %1$s â€¢ DAC accepts %2$d Hz</string>
+    <string name="signal_detail_usb_ok_rejects">USB DAC â€” %1$s â€¢ %2$d Hz not in DAC descriptor</string>
 
     <!-- Queue + notification accessibility -->
-    <string name="queue_rearrange_hint">Long-press ⋮⋮ to rearrange</string>
+    <string name="queue_rearrange_hint">Long-press â‹®â‹® to rearrange</string>
     <string name="queue_drag_hint">Drag to reorder</string>
     <string name="desc_shuffle">Shuffle</string>
     <string name="desc_repeat">Repeat</string>
@@ -345,8 +355,8 @@
     </plurals>
 
     <!-- Settings Search -->
-    <string name="settings_search_hint">Search settings…</string>
-    <string name="settings_search_no_results">No settings found for “%1$s”</string>
+    <string name="settings_search_hint">Search settingsâ€¦</string>
+    <string name="settings_search_no_results">No settings found for â€œ%1$sâ€</string>
     <string name="settings_search_no_results_sub">Try checking for typos or searching with different keywords</string>
     <string name="settings_search_clear">Clear search</string>
     <string name="settings_search_title">Search settings</string>

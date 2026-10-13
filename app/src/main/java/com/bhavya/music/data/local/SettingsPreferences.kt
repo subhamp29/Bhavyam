@@ -147,7 +147,7 @@ data class MiscSettings(
      *  Default "Bhavya" -> Music/Bhavya. Scoped storage (API 29+)
      *  forbids arbitrary paths, so only the leaf folder name is configurable. */
     val downloadFolder: String = DEFAULT_DOWNLOAD_FOLDER,
-    /** User-chosen SAF tree Uri (ACTION_OPEN_DOCUMENT_TREE) for downloads,
+    /** User configured SAF tree Uri (ACTION_OPEN_DOCUMENT_TREE) for downloads,
      *  e.g. a folder on the SD card. Blank = default Music/<downloadFolder>.
      *  Persisted via takePersistableUriPermission so it survives reboots. */
     val downloadTreeUri: String = "",
@@ -172,6 +172,12 @@ data class MiscSettings(
     val canvasFullBleed: Boolean = true,
     /** When true, canvas video loops may be fetched over cellular data. */
     val canvasOverCellular: Boolean = true,
+    /** Master toggle for beat-reactive visuals (Settings -> Experimental). */
+    val beatReactiveEnabled: Boolean = false,
+    /** Intensity multiplier for beat-reactive visual effect (0.1–1.0). */
+    val beatReactiveIntensity: Float = 0.5f,
+    /** User trim for visual-audio latency sync (-200..+200 ms). */
+    val beatReactiveSyncOffsetMs: Int = 0,
 )
 
 /** Toggleable sections of the Home tab (see FeedScreen). Hero greeting and
@@ -277,6 +283,9 @@ class SettingsPreferences @Inject constructor(
         val CANVAS_ENABLED = booleanPreferencesKey("lw_canvas_enabled")
         val CANVAS_FULL_BLEED = booleanPreferencesKey("lw_canvas_full_bleed")
         val CANVAS_OVER_CELLULAR = booleanPreferencesKey("lw_canvas_over_cellular")
+        val BEAT_REACTIVE_ENABLED = booleanPreferencesKey("lw_beat_reactive_enabled")
+        val BEAT_REACTIVE_INTENSITY = floatPreferencesKey("lw_beat_reactive_intensity")
+        val BEAT_REACTIVE_SYNC_OFFSET_MS = intPreferencesKey("lw_beat_reactive_sync_offset_ms")
     }
 
     val settings: Flow<MiscSettings> = dataStore.data
@@ -322,6 +331,9 @@ class SettingsPreferences @Inject constructor(
                 canvasEnabled = p.readSafely(Keys.CANVAS_ENABLED) ?: true,
                 canvasFullBleed = p.readSafely(Keys.CANVAS_FULL_BLEED) ?: true,
                 canvasOverCellular = p.readSafely(Keys.CANVAS_OVER_CELLULAR) ?: true,
+                beatReactiveEnabled = p.readSafely(Keys.BEAT_REACTIVE_ENABLED) ?: false,
+                beatReactiveIntensity = (p.readSafely(Keys.BEAT_REACTIVE_INTENSITY) ?: 0.5f).coerceIn(0.1f, 1.0f),
+                beatReactiveSyncOffsetMs = (p.readSafely(Keys.BEAT_REACTIVE_SYNC_OFFSET_MS) ?: 0).coerceIn(-200, 200),
             )
         }
 
@@ -534,6 +546,18 @@ class SettingsPreferences @Inject constructor(
 
     suspend fun setCanvasOverCellular(enabled: Boolean) {
         dataStore.edit { it[Keys.CANVAS_OVER_CELLULAR] = enabled }
+    }
+
+    suspend fun setBeatReactiveEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.BEAT_REACTIVE_ENABLED] = enabled }
+    }
+
+    suspend fun setBeatReactiveIntensity(intensity: Float) {
+        dataStore.edit { it[Keys.BEAT_REACTIVE_INTENSITY] = intensity.coerceIn(0.1f, 1.0f) }
+    }
+
+    suspend fun setBeatReactiveSyncOffsetMs(offsetMs: Int) {
+        dataStore.edit { it[Keys.BEAT_REACTIVE_SYNC_OFFSET_MS] = offsetMs.coerceIn(-200, 200) }
     }
 
     private companion object {

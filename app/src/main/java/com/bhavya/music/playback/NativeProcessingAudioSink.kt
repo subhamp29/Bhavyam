@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import com.bhavya.music.playback.analysis.BeatEnergyTap
 
 /**
  * Runs the optional native Float32 DSP in front of Media3 while keeping an
@@ -96,6 +97,9 @@ class NativeProcessingAudioSink(
 
     private var endOfStreamQueued = false
     private var endOfStreamOutput: ByteBuffer? = null
+
+    /** Beat energy tap for reactive visualizations. Only active when DSP path is running. */
+    private var beatEnergyTap: BeatEnergyTap? = null
 
     var onConfiguredFormat: ((sampleRateHz: Int, pcmEncoding: Int, channelCount: Int) -> Unit)? = null
     var bitDepthHintProvider: (() -> Int?)? = null
@@ -230,6 +234,7 @@ class NativeProcessingAudioSink(
                 activeDelegate = enhancedDelegate
                 processingActive = false
                 processedFormat = null
+                beatEnergyTap = null
                 lastGainBuffer = null
                 syncDelegateVolume()
                 notifyPlatformEffectsRequired(false)
@@ -245,6 +250,7 @@ class NativeProcessingAudioSink(
                 activeDelegate = fallbackDelegate
                 processingActive = false
                 processedFormat = null
+                beatEnergyTap = null
                 lastGainBuffer = null
                 syncDelegateVolume()
                 notifyPlatformEffectsRequired(false)
@@ -313,6 +319,11 @@ class NativeProcessingAudioSink(
                 syncDelegateVolume()
                 notifyPlatformEffectsRequired(false)
                 if (playing) enhancedDelegate.play()
+                // Initialize beat energy tap for processed output
+                beatEnergyTap = BeatEnergyTap(
+                    sampleRateHz = processor.nativeOutputSampleRate,
+                    channelCount = outputChannelCount,
+                )
                 return true
             } catch (error: Exception) {
                 disableFloatOutput("Float32 AudioTrack configuration failed", error)
@@ -334,6 +345,11 @@ class NativeProcessingAudioSink(
             syncDelegateVolume()
             notifyPlatformEffectsRequired(false)
             if (playing) fallbackDelegate.play()
+            // Initialize beat energy tap for processed output
+            beatEnergyTap = BeatEnergyTap(
+                sampleRateHz = processor.nativeOutputSampleRate,
+                channelCount = outputChannelCount,
+            )
             Log.i(TAG, "Using native Float32 DSP with PCM16 AudioTrack compatibility output")
             true
         } catch (error: Exception) {
@@ -351,6 +367,7 @@ class NativeProcessingAudioSink(
         outputChannels: IntArray?,
     ) {
         processingActive = false
+        beatEnergyTap = null
         clearPending()
         clearEndOfStream()
         processedFormat = null
@@ -380,6 +397,16 @@ class NativeProcessingAudioSink(
         }
         try {
             activeDelegate.play()
+            beatEnergyTap?.setActive(true)
+            // Update latency compensation when playback starts
+            val latencyFrames = try {
+                // DefaultAudioSink doesn't expose getLatencyFrames directly
+                // Fall back to default 80ms
+                BeatEnergyTap.DEFAULT_SINK_LATENCY_MS * processor.nativeOutputSampleRate / 1000
+            } catch (_: Exception) {
+                BeatEnergyTap.DEFAULT_SINK_LATENCY_MS * processor.nativeOutputSampleRate / 1000
+            }
+            beatEnergyTap?.setLatencyCompensation(latencyFrames, 0)
         } catch (error: Exception) {
             if (!recoverProcessingPath("Processed output play failed", error)) throw error
             activeDelegate.play()
@@ -605,6 +632,8 @@ class NativeProcessingAudioSink(
             pendingAccessUnitCount = encodedAccessUnitCount
             pendingOutputFrameCount = output.remaining() /
                 (Float.SIZE_BYTES * outputChannelCount)
+            // Feed beat tap with processed output (post-DSP, pre-AudioTrack)
+            beatEnergyTap?.observe(output.duplicate())
         }
 
         val output = pendingOutput ?: return true
@@ -872,6 +901,7 @@ class NativeProcessingAudioSink(
         enterExclusiveUsb()
         processingActive = false
         processedFormat = null
+        beatEnergyTap = null
         lastGainBuffer = null
         usbOutput?.setFormat(null)
         activeDelegate = fallbackDelegate
@@ -971,6 +1001,9 @@ class NativeProcessingAudioSink(
         return fallback > 0 && fallback != source.sampleRate &&
             (fallbackSource == null || fallbackSource == source.sampleRate)
     }
+
+    /** Returns the beat energy tap for UI reactivity. Only non-null when DSP path is active. */
+    fun getBeatEnergyTap(): BeatEnergyTap? = beatEnergyTap
 
     fun exclusiveSourceSampleRateHz(): Int = configuredFormat?.sampleRate ?: 0
 
@@ -1172,6 +1205,7 @@ class NativeProcessingAudioSink(
             return
         }
         activeDelegate.pause()
+        beatEnergyTap?.setActive(false)
     }
 
     override fun flush() {
@@ -1283,6 +1317,8 @@ class NativeProcessingAudioSink(
             configureUsbOutput(floatFormat, C.ENCODING_PCM_16BIT, configuredOutputChannels)
             notifyPlatformEffectsRequired(false)
             if (playing) fallbackDelegate.play()
+            // Update beat tap format for new output path
+            beatEnergyTap?.setFormat(processor.nativeOutputSampleRate, outputChannelCount)
             Log.w(TAG, "Recovered with native Float32 DSP and PCM16 AudioTrack output")
             true
         } catch (fallbackError: Exception) {
@@ -1298,6 +1334,7 @@ class NativeProcessingAudioSink(
         val format = configuredFormat ?: return false
         disableNativePath(reason, error)
         processingActive = false
+        beatEnergyTap = null
         clearPending()
         clearEndOfStream()
         processedFormat = null

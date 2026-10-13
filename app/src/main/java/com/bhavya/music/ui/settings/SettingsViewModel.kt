@@ -544,6 +544,15 @@ class SettingsViewModel @Inject constructor(
     fun setDownloadLyrics(enabled: Boolean) = launchSettingsAction("update download lyrics setting") {
         settingsPreferences.setDownloadLyrics(enabled)
     }
+    fun setBeatReactiveEnabled(enabled: Boolean) = launchSettingsAction("update beat-reactive visuals") {
+        settingsPreferences.setBeatReactiveEnabled(enabled)
+    }
+    fun setBeatReactiveIntensity(intensity: Float) = launchSettingsAction("update beat-reactive intensity") {
+        settingsPreferences.setBeatReactiveIntensity(intensity)
+    }
+    fun setBeatReactiveSyncOffsetMs(offsetMs: Int) = launchSettingsAction("update beat-reactive sync offset") {
+        settingsPreferences.setBeatReactiveSyncOffsetMs(offsetMs)
+    }
 
     /** Persists + applies; AppLocaleManager owns error handling and threading. */
     fun setAppLanguage(language: AppLanguage) {

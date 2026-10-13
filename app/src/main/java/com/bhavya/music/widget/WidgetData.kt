@@ -24,6 +24,8 @@ data class WidgetSnapshot(
     /** Last known playback position 0..1. Refreshed on every publish and
      *  live-driven by the ticker while playing. */
     val progress: Float = 0f,
+    /** Timestamp of last beat detection for widget reactive effects. */
+    val beatTimestamp: Long = 0L,
 ) {
     companion object {
         internal const val STORE = "bhavya_widget_now_playing"
@@ -42,6 +44,7 @@ data class WidgetSnapshot(
                 isPlaying = prefs.getBoolean("is_playing", false),
                 hasSession = prefs.getBoolean("has_session", false),
                 progress = prefs.getFloat("progress", 0f).coerceIn(0f, 1f),
+                beatTimestamp = prefs.getLong("beat_timestamp", 0L),
             )
         }
 
@@ -57,6 +60,7 @@ data class WidgetSnapshot(
                     .putBoolean("is_playing", value.isPlaying)
                     .putBoolean("has_session", value.hasSession)
                     .putFloat("progress", value.progress.coerceIn(0f, 1f))
+                    .putLong("beat_timestamp", value.beatTimestamp)
                     .apply()
             }
         }

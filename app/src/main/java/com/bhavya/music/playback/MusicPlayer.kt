@@ -66,6 +66,8 @@ import com.bhavya.music.data.plugin.ModuleDrmFactory
 import com.bhavya.music.data.plugin.SegmentedDashBridge
 import com.bhavya.music.data.plugin.stableCacheKey
 import com.bhavya.music.playback.usb.UsbExclusivePrefs
+import com.bhavya.music.playback.analysis.BeatEnergySnapshot
+import com.bhavya.music.playback.analysis.BeatEnergyTap
 import com.bhavya.music.widget.WidgetUpdater
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -437,6 +439,27 @@ class MusicPlayer @Inject constructor(
     /** Verified signal-path report; BIT-PERFECT shows only when all checks pass. */
     val signalPath: StateFlow<SignalPathReport> = _signalPath.asStateFlow()
     val usbDacState: StateFlow<UsbDacMonitor.State> = usbDacMonitor.state
+
+    // Beat energy tap for reactive visuals — polls the active sink's tap at ~30 fps.
+    private val _beatEnergy = MutableStateFlow<BeatEnergySnapshot?>(null)
+    val beatEnergy: StateFlow<BeatEnergySnapshot?> = _beatEnergy
+    private var beatEnergyPollJob: Job? = null
+
+    /**
+     * Applies the user sync offset to the active beat energy tap's latency compensation.
+     * Called when the sync offset setting changes.
+     */
+    fun setBeatEnergySyncOffset(offsetMs: Int) {
+        // Find the most recent sink with an active beat energy tap
+        val sink = audioSinks.asSequence()
+            .map { it.getBeatEnergyTap() }
+            .firstOrNull { it != null }
+        sink?.setLatencyCompensation(
+            sinkLatencyFrames = BeatEnergyTap.DEFAULT_SINK_LATENCY_MS * 48000 / 1000, // Default 80ms at 48kHz
+            userSyncOffsetMs = offsetMs
+        )
+    }
+
     private val resolvingMediaIds = ConcurrentHashMap<String, Long>()
     private val preparedStreams = ConcurrentHashMap<String, ResolvedStream>()
 
@@ -1026,6 +1049,24 @@ class MusicPlayer @Inject constructor(
                     sink.setBitPerfectRequested(!isSpatial && (bitPerfectEnabled || usbExclusivePrefEnabled))
                     sink.syncExclusiveUsb(handleAudioFocus && exclusiveUsbWanted())
                     audioSinks.add(sink)
+                    // Start polling beat energy tap for this sink (cancel previous)
+                    beatEnergyPollJob?.cancel()
+                    beatEnergyPollJob = applicationScope.launch {
+                        var lastTap: BeatEnergyTap? = null
+                        while (isActive) {
+                            val tap = sink.getBeatEnergyTap()
+                            if (tap != lastTap) {
+                                lastTap = tap
+                            }
+                            tap?.let {
+                                _beatEnergy.value = it.latestSnapshot
+                            } ?: run {
+                                // No tap available (DSP path not active)
+                                _beatEnergy.value = null
+                            }
+                            delay(33)
+                        }
+                    }
                     runCatching {
                         routedDacDeviceId?.let { id -> findOutputDevice(id)?.let(sink::setPreferredDevice) }
                     }

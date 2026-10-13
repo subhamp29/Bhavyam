@@ -210,6 +210,7 @@ import com.bhavya.music.data.playlist.SavedPlaylist
 import com.bhavya.music.data.playlist.LIKED_SONGS_MODE
 import com.bhavya.music.data.local.LyricsAnimation
 import com.bhavya.music.data.local.LyricsUiVersion
+import com.bhavya.music.playback.analysis.BeatEnergySnapshot
 import com.bhavya.music.playback.MusicPlayer
 import com.bhavya.music.playback.MusicPlayerState
 import com.bhavya.music.playback.PlaybackChromeState
@@ -301,6 +302,8 @@ class PlayerViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, player.state.value.copy(positionMs = 0L, bufferedPositionMs = 0L))
     val settings: StateFlow<com.bhavya.music.data.local.MiscSettings> = settingsPreferences.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), com.bhavya.music.data.local.MiscSettings())
+    val beatEnergy: StateFlow<BeatEnergySnapshot?> = player.beatEnergy
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     val activeDownloads = downloadManager.downloads
         .map { map -> map.values.filter { !it.isFinished && it.error == null } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -674,6 +677,8 @@ fun PlayerHost(
     }
     val miniGlass = LocalLiquidGlass.current && isLiquidGlassBackdropSupported()
 
+    val miniSettings = viewModel.settings.collectAsStateWithLifecycle()
+
     val bottomNavSlot = remember { mutableStateOf<@Composable () -> Unit>({}) }
     CompositionLocalProvider(
         LocalMusicPlayer provides viewModel.player,
@@ -697,6 +702,8 @@ fun PlayerHost(
                     bottomPadding = if (hasBottomNavigation) 92.dp else 12.dp,
                     edgeToEdge = !hasBottomNavigation,
                     backdrop = if (miniGlass) miniBackdrop else null,
+                    beatEnergy = viewModel.beatEnergy,
+                    settings = miniSettings.value,
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 
@@ -832,11 +839,18 @@ private fun ExpandedPlayer(
     val canvas by viewModel.canvasState.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val likedTrackKeys by viewModel.likedTrackKeys.collectAsStateWithLifecycle()
+    val beatEnergy = viewModel.beatEnergy
     val currentTrack = state.current
     // Normalized key: raw "title|artist".lowercase() would miss liked entries
     // whose spacing differs (e.g. trailing space from another source).
     val isLiked = currentTrack != null &&
         currentTrack.toGeneratedTrack().key in likedTrackKeys
+
+    // Apply beat-reactive sync offset to the active audio sink's tap
+    LaunchedEffect(settings.beatReactiveSyncOffsetMs) {
+        viewModel.player.setBeatEnergySyncOffset(settings.beatReactiveSyncOffsetMs)
+    }
+
     FullPlayer(
         state = state,
         progressState = viewModel.progressState,
@@ -862,6 +876,8 @@ private fun ExpandedPlayer(
         onToggleLiked = { currentTrack?.let(viewModel::toggleLiked) },
         onDoubleTapLike = { currentTrack?.let(viewModel::like) },
         onDragStatusChange = onDragStatusChange,
+        beatEnergy = beatEnergy,
+        settings = settings,
     )
 }
 
@@ -920,6 +936,8 @@ private fun MiniPlayer(
     bottomPadding: androidx.compose.ui.unit.Dp,
     edgeToEdge: Boolean,
     backdrop: Backdrop? = LocalLiquidGlassBackdrop.current,
+    beatEnergy: StateFlow<BeatEnergySnapshot?> = MutableStateFlow(null),
+    settings: com.bhavya.music.data.local.MiscSettings = com.bhavya.music.data.local.MiscSettings(),
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -1033,14 +1051,35 @@ private fun MiniPlayer(
                     Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(Modifier.size(56.dp)) {
-                        Surface(
-                            shape = RoundedCornerShape(18.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            tonalElevation = 2.dp,
-                            modifier = Modifier.fillMaxSize(),
-                        ) {
-                            PlayerArtwork(track, Modifier.fillMaxSize(), 18.dp)
+                    val isTablet = isTabletOrWideScreen()
+                    val artworkModifier = Modifier.size(56.dp)
+                    if (isTablet && settings.beatReactiveEnabled) {
+                        BeatReactiveLayer(
+                            beatEnergy = beatEnergy,
+                            settings = settings,
+                            content = {
+                                Box(artworkModifier) {
+                                    Surface(
+                                        shape = RoundedCornerShape(18.dp),
+                                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        tonalElevation = 2.dp,
+                                        modifier = Modifier.fillMaxSize(),
+                                    ) {
+                                        PlayerArtwork(track, Modifier.fillMaxSize(), 18.dp)
+                                    }
+                                }
+                            }
+                        )
+                    } else {
+                        Box(artworkModifier) {
+                            Surface(
+                                shape = RoundedCornerShape(18.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                tonalElevation = 2.dp,
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                PlayerArtwork(track, Modifier.fillMaxSize(), 18.dp)
+                            }
                         }
                     }
                     // Glass surface follows the theme (frosted white → black text
@@ -1698,6 +1737,8 @@ private fun FullPlayer(
     onToggleLiked: () -> Unit = {},
     onDoubleTapLike: () -> Unit = {},
     onDragStatusChange: (Boolean) -> Unit = {},
+    beatEnergy: StateFlow<BeatEnergySnapshot?> = MutableStateFlow(null),
+    settings: com.bhavya.music.data.local.MiscSettings = com.bhavya.music.data.local.MiscSettings(),
 ) {
     val track = state.current ?: return
     var showLyricsOffsetDialog by remember { mutableStateOf(false) }
@@ -1861,6 +1902,8 @@ private fun FullPlayer(
                     // suppression; the Now Playing tab keeps its light blur.
                     extraBlur = currentTab == FullPlayerTab.LYRICS,
                     rotatingBackgroundEnabled = rotatingBackgroundEnabled,
+                    beatEnergy = beatEnergy,
+                    settings = settings,
                     fallback = {
                         val staticBlurTransform = remember(currentTab) {
                             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {

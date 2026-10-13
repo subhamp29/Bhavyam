@@ -48,16 +48,24 @@ internal object ObsidianWidgetViews {
         appWidgetId: Int,
         eqFrame: Int? = null,
         progressOverride: Float? = null,
+        beatTimestamp: Long = 0L,
     ): RemoteViews {
         val resolved = WidgetViews.resolve(context)
         val artBitmap = resolveArtBitmap(resolved.snapshot.artPath)
+        val now = System.currentTimeMillis()
+        val beatDetected = beatTimestamp > 0 && (now - beatTimestamp) < 300
+        val tintedArtBitmap = if (beatDetected && artBitmap != null) {
+            WidgetViews.applyBeatTint(artBitmap, resolved.snapshot.progress)
+        } else {
+            artBitmap
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val sizeMap = mapOf(
-                SizeF(120f, 50f) to buildLayout(context, R.layout.widget_obsidian_compact, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(220f, 50f) to buildLayout(context, R.layout.widget_obsidian_horizontal, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(120f, 115f) to buildLayout(context, R.layout.widget_obsidian_square, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(250f, 115f) to buildLayout(context, R.layout.widget_obsidian_expanded, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
+                SizeF(120f, 50f) to buildLayout(context, R.layout.widget_obsidian_compact, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(220f, 50f) to buildLayout(context, R.layout.widget_obsidian_horizontal, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(120f, 115f) to buildLayout(context, R.layout.widget_obsidian_square, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(250f, 115f) to buildLayout(context, R.layout.widget_obsidian_expanded, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
             )
             return RemoteViews(sizeMap)
         }
@@ -70,7 +78,7 @@ internal object ObsidianWidgetViews {
             width in 1 until 220 -> R.layout.widget_obsidian_compact
             else -> R.layout.widget_obsidian_horizontal
         }
-        return buildLayout(context, layoutId, resolved, appWidgetId, eqFrame, progressOverride, artBitmap)
+        return buildLayout(context, layoutId, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap)
     }
 
     private fun buildLayout(

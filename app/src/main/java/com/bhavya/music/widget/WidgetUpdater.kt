@@ -92,10 +92,14 @@ object WidgetUpdater {
         sourcePackage: String,
         art: Bitmap?,
         isPlaying: Boolean,
+        beatDetected: Boolean = false,
+        bassEnergy: Float = 0f,
     ) = publishMutex.withLock {
         val artPath = art?.let { bitmap -> writeArt(context, bitmap) }
         // Snapshot the position now: the controller is fresh at publish time.
         val fraction = readLiveFraction(context, 0f)
+        val currentSnapshot = WidgetSnapshot.read(context)
+        val beatTimestamp = if (beatDetected) System.currentTimeMillis() else currentSnapshot.beatTimestamp
         WidgetSnapshot.write(
             context,
             WidgetSnapshot(
@@ -108,6 +112,7 @@ object WidgetUpdater {
                 isPlaying = isPlaying,
                 hasSession = true,
                 progress = fraction,
+                beatTimestamp = beatTimestamp,
             ),
         )
         pushAll(context)
@@ -158,15 +163,16 @@ object WidgetUpdater {
      */
     private fun pushAll(context: Context, eqFrame: Int? = null, progressOverride: Float? = null): Boolean =
         runCatching {
+            val snapshot = WidgetSnapshot.read(context)
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, NowPlayingWidgetReceiver::class.java))
             for (appWidgetId in ids) {
-                val views = WidgetViews.build(context, appWidgetId, eqFrame, progressOverride)
+                val views = WidgetViews.build(context, appWidgetId, eqFrame, progressOverride, snapshot.beatTimestamp)
                 runCatching { manager.updateAppWidget(appWidgetId, views) }
             }
             val obsidianIds = manager.getAppWidgetIds(ComponentName(context, ObsidianGlassWidgetReceiver::class.java))
             for (appWidgetId in obsidianIds) {
-                val views = ObsidianWidgetViews.build(context, appWidgetId, eqFrame, progressOverride)
+                val views = ObsidianWidgetViews.build(context, appWidgetId, eqFrame, progressOverride, snapshot.beatTimestamp)
                 runCatching { manager.updateAppWidget(appWidgetId, views) }
             }
             ids.isNotEmpty() || obsidianIds.isNotEmpty()

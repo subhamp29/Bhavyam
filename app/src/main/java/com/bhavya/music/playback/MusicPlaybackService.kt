@@ -43,6 +43,7 @@ import com.bhavya.music.data.repository.ScrobbleRepository
 import com.bhavya.music.data.repository.ThemeRepository
 
 import com.bhavya.music.widget.ActiveMediaSessionHolder
+import com.bhavya.music.playback.analysis.BeatEnergySnapshot
 import com.bhavya.music.widget.WidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -142,6 +143,8 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
     private var notificationPalette = NotificationPalette.default()
     private var playbackWakeLock: PowerManager.WakeLock? = null
     private var playbackWifiLock: WifiManager.WifiLock? = null
+    // Beat energy for widget reactive effects
+    @Volatile private var latestBeatEnergy: BeatEnergySnapshot? = BeatEnergySnapshot.IDLE
 
     override fun onCreate() {
         super.onCreate()
@@ -274,6 +277,11 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
         scope.launch {
             androidAutoLibrary.downloadChanges.distinctUntilChanged().collect {
                 notifyCarLibraryChanged(AndroidAutoMediaLibrary.DOWNLOADS_ID)
+            }
+        }
+        scope.launch {
+            musicPlayer.beatEnergy.collect { snapshot ->
+                latestBeatEnergy = snapshot
             }
         }
         startDetector()
@@ -909,6 +917,7 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
         val signature = "${track.title}|${track.artist}|${state.isPlaying}|$artworkUrl|${artworkBitmap != null}"
         if (signature == widgetSignature) return
         widgetSignature = signature
+        val beatEnergy = latestBeatEnergy ?: BeatEnergySnapshot.IDLE
         scope.launch(Dispatchers.IO) {
             WidgetUpdater.publish(
                 context = this@MusicPlaybackService,
@@ -919,6 +928,8 @@ class MusicPlaybackService : MediaBrowserServiceCompat() {
                 sourcePackage = packageName,
                 art = artworkBitmap,
                 isPlaying = state.isPlaying,
+                beatDetected = beatEnergy.beatDetected && beatEnergy.isActive,
+                bassEnergy = beatEnergy.bassEnergy,
             )
         }
     }

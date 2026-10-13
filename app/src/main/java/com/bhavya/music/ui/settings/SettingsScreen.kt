@@ -484,6 +484,8 @@ fun SettingsScreen(
     var showYtChannelSheet by remember { mutableStateOf(false) }
     var showYtDisconnectConfirm by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showBeatReactiveIntensityDialog by remember { mutableStateOf(false) }
+    var showBeatReactiveSyncDialog by remember { mutableStateOf(false) }
     val currentLanguage = remember(misc.appLanguageTag) { AppLanguage.fromTag(misc.appLanguageTag) }
 
     // Sends the user to Android's own Notification Listener access screen
@@ -1143,7 +1145,7 @@ fun SettingsScreen(
                         item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SectionLabel(stringResource(R.string.settings_section_experimental))
-                    SettingsGroup(rowCount = 7) { index, position ->
+                    SettingsGroup(rowCount = 10) { index, position ->
                         when (index) {
                             0 -> SettingsActionCard(
                                 icon = Icons.Filled.Lyrics,
@@ -1244,6 +1246,41 @@ fun SettingsScreen(
                                 onCheckedChange = viewModel::setSystemEffectsMode,
                                 position = position,
                                 isHighlighted = (highlightedSettingId == "appearance.system_audio_effects"),
+                            )
+                            7 -> SettingsToggleCard(
+                                icon = Icons.Filled.GraphicEq,
+                                iconContainer = MaterialTheme.colorScheme.primaryContainer,
+                                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                title = stringResource(R.string.settings_beat_reactive),
+                                subtitle = if (misc.beatReactiveEnabled) {
+                                    stringResource(R.string.settings_beat_reactive_on)
+                                } else {
+                                    stringResource(R.string.settings_beat_reactive_off)
+                                },
+                                checked = misc.beatReactiveEnabled,
+                                onCheckedChange = viewModel::setBeatReactiveEnabled,
+                                position = position,
+                                isHighlighted = (highlightedSettingId == "appearance.beat_reactive"),
+                            )
+                            8 -> SettingsActionCard(
+                                icon = Icons.Filled.Tune,
+                                iconContainer = MaterialTheme.colorScheme.secondaryContainer,
+                                iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                title = stringResource(R.string.settings_beat_reactive_intensity),
+                                subtitle = stringResource(R.string.settings_beat_reactive_intensity_sub, (misc.beatReactiveIntensity * 100).roundToInt()),
+                                onClick = { showBeatReactiveIntensityDialog = true },
+                                position = position,
+                                isHighlighted = (highlightedSettingId == "appearance.beat_reactive_intensity"),
+                            )
+                            9 -> SettingsActionCard(
+                                icon = Icons.Filled.Timer,
+                                iconContainer = MaterialTheme.colorScheme.tertiaryContainer,
+                                iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                title = stringResource(R.string.settings_beat_reactive_sync),
+                                subtitle = stringResource(R.string.settings_beat_reactive_sync_sub, misc.beatReactiveSyncOffsetMs),
+                                onClick = { showBeatReactiveSyncDialog = true },
+                                position = position,
+                                isHighlighted = (highlightedSettingId == "appearance.beat_reactive_sync"),
                             )
                         }
                     }
@@ -2064,6 +2101,24 @@ fun SettingsScreen(
                 showClarityPresetDialog = false
             },
             onDismiss = { showClarityPresetDialog = false },
+        )
+    }
+
+    // -- Beat Reactive Intensity Dialog --
+    if (showBeatReactiveIntensityDialog) {
+        BeatReactiveIntensityDialog(
+            currentIntensity = misc.beatReactiveIntensity,
+            onSelect = { viewModel.setBeatReactiveIntensity(it) },
+            onDismiss = { showBeatReactiveIntensityDialog = false },
+        )
+    }
+
+    // -- Beat Reactive Sync Offset Dialog --
+    if (showBeatReactiveSyncDialog) {
+        BeatReactiveSyncOffsetDialog(
+            currentOffsetMs = misc.beatReactiveSyncOffsetMs,
+            onSelect = { viewModel.setBeatReactiveSyncOffsetMs(it) },
+            onDismiss = { showBeatReactiveSyncDialog = false },
         )
     }
 
@@ -5165,6 +5220,264 @@ private fun LyricsAnimationSheet(
                             textAlign = TextAlign.Center,
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+private fun BeatReactiveIntensityDialog(
+    currentIntensity: Float,
+    onSelect: (Float) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var intensity by remember { mutableStateOf(currentIntensity) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        dragHandle = {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .padding(top = 12.dp, bottom = 8.dp)
+                    .size(width = 36.dp, height = 4.dp),
+            ) {}
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .adaptiveContentWidth(maxWidth = 640.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp + safeDrawingBottomPadding()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_beat_reactive_intensity),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Tune,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = "${(intensity * 100).roundToInt()}%",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_beat_reactive_intensity_sub, (intensity * 100).roundToInt()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                androidx.compose.material3.Slider(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = intensity,
+                    onValueChange = { newValue ->
+                        intensity = newValue.coerceIn(0.1f, 1.0f)
+                    },
+                    onValueChangeFinished = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        onSelect(intensity)
+                    },
+                    valueRange = 0.1f..1.0f,
+                    steps = 9,
+                    colors = androidx.compose.material3.SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                    ),
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Subtle", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Maximum", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = { onDismiss() },
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    Text(stringResource(R.string.common_done))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+private fun BeatReactiveSyncOffsetDialog(
+    currentOffsetMs: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var offsetMs by remember { mutableStateOf(currentOffsetMs) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        dragHandle = {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .padding(top = 12.dp, bottom = 8.dp)
+                    .size(width = 36.dp, height = 4.dp),
+            ) {}
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .adaptiveContentWidth(maxWidth = 640.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp + safeDrawingBottomPadding()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_beat_reactive_sync),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Timer,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = if (offsetMs == 0) "Off" else "${if (offsetMs > 0) "+" else ""}$offsetMs ms",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_beat_reactive_sync_sub, offsetMs),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                androidx.compose.material3.Slider(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = offsetMs.toFloat(),
+                    onValueChange = { newValue ->
+                        offsetMs = newValue.roundToInt().coerceIn(-200, 200)
+                    },
+                    onValueChangeFinished = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        onSelect(offsetMs)
+                    },
+                    valueRange = -200f..200f,
+                    steps = 40,
+                    colors = androidx.compose.material3.SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                    ),
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Visuals early", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Visuals late", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = { onDismiss() },
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    Text(stringResource(R.string.common_done))
                 }
             }
         }

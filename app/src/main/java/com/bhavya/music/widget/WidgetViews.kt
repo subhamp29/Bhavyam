@@ -76,16 +76,24 @@ internal object WidgetViews {
         appWidgetId: Int,
         eqFrame: Int? = null,
         progressOverride: Float? = null,
+        beatTimestamp: Long = 0L,
     ): RemoteViews {
         val resolved = resolve(context)
         val artBitmap = resolveArtBitmap(resolved.snapshot.artPath)
+        val now = System.currentTimeMillis()
+        val beatDetected = beatTimestamp > 0 && (now - beatTimestamp) < 300
+        val tintedArtBitmap = if (beatDetected && artBitmap != null) {
+            applyBeatTint(artBitmap, resolved.snapshot.progress)
+        } else {
+            artBitmap
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val sizeMap = mapOf(
-                SizeF(120f, 50f) to buildLayout(context, R.layout.widget_now_playing_compact, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(220f, 50f) to buildLayout(context, R.layout.widget_now_playing, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(120f, 115f) to buildLayout(context, R.layout.widget_now_playing_square, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
-                SizeF(250f, 115f) to buildLayout(context, R.layout.widget_now_playing_expanded, resolved, appWidgetId, eqFrame, progressOverride, artBitmap),
+                SizeF(120f, 50f) to buildLayout(context, R.layout.widget_now_playing_compact, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(220f, 50f) to buildLayout(context, R.layout.widget_now_playing, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(120f, 115f) to buildLayout(context, R.layout.widget_now_playing_square, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
+                SizeF(250f, 115f) to buildLayout(context, R.layout.widget_now_playing_expanded, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap),
             )
             return RemoteViews(sizeMap)
         }
@@ -99,7 +107,7 @@ internal object WidgetViews {
             width in 1 until 220 -> R.layout.widget_now_playing_compact
             else -> R.layout.widget_now_playing
         }
-        return buildLayout(context, layoutId, resolved, appWidgetId, eqFrame, progressOverride, artBitmap)
+        return buildLayout(context, layoutId, resolved, appWidgetId, eqFrame, progressOverride, tintedArtBitmap)
     }
 
     private fun buildLayout(
@@ -265,6 +273,47 @@ internal object WidgetViews {
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(src, 0f, 0f, paint)
         paint.xfermode = null
+        out
+    }.getOrNull() ?: src
+
+    /**
+     * Applies a warm brightness boost tint to the artwork bitmap for beat-reactive effect.
+     * Uses ColorMatrix for efficient CPU-based color transformation.
+     */
+    internal fun applyBeatTint(src: Bitmap, bassEnergy: Float): Bitmap = runCatching {
+        val w = src.width
+        val h = src.height
+        if (w <= 0 || h <= 0) return src
+        val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(out)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Create a color matrix for warm hue shift + brightness boost
+        // Based on bass energy (0..1), scale the effect
+        val intensity = bassEnergy.coerceIn(0f, 1f)
+        val brightnessBoost = 0.15f * intensity  // Up to 15% brightness increase
+        val warmthShift = 0.1f * intensity       // Subtle warm hue shift
+
+        val colorMatrix = android.graphics.ColorMatrix()
+        // Brightness boost
+        colorMatrix.setScale(
+            1f + brightnessBoost,
+            1f + brightnessBoost,
+            1f + brightnessBoost,
+            1f
+        )
+        // Warm hue shift (increase red, slightly decrease blue)
+        val warmthMatrix = android.graphics.ColorMatrix()
+        warmthMatrix.set(floatArrayOf(
+            1f + warmthShift, 0f, 0f, 0f, 0f,
+            0f, 1f, 0f, 0f, 0f,
+            0f, 0f, 1f - warmthShift, 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        colorMatrix.postConcat(warmthMatrix)
+
+        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(src, 0f, 0f, paint)
         out
     }.getOrNull() ?: src
 }

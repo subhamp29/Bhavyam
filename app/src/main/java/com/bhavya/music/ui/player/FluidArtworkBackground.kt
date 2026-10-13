@@ -15,13 +15,18 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
@@ -36,7 +41,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.bhavya.music.playback.analysis.BeatEnergySnapshot
 import coil.ImageLoader
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.bhavya.music.playback.PlayableTrack
@@ -78,6 +89,12 @@ internal val FLUID_AGSL = """
     uniform float brightness;
     uniform float contrast;
 
+    // Beat-reactive uniforms
+    uniform float beatBass;      // 0–1, low-frequency energy
+    uniform float beatRms;       // 0–1, overall loudness
+    uniform int beatOnset;       // 1 on beat detection, 0 otherwise
+    uniform float beatIntensity; // 0.1–1.0, user intensity setting
+
     float2 twist(float2 coord, float2 offset, float radius, float angle) {
         float2 d = coord - offset;
         float dist = length(d);
@@ -102,6 +119,22 @@ internal val FLUID_AGSL = """
         return uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0;
     }
 
+    // HSV conversion helpers for hue shift
+    float3 rgb2hsv(float3 c) {
+        float4 K = float4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
+        float4 p = mix(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+        float4 q = mix(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+        float d = q.x - min(q.w, q.y);
+        float e = 1.0e-10;
+        return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+    }
+
+    float3 hsv2rgb(float3 c) {
+        float4 K = float4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+        float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    }
+
     half4 main(float2 fragCoord) {
         float2 p = twist(fragCoord, twistA, twistRadius, twistAngle);
         p = twist(p, twistB, twistRadius, -twistAngle);
@@ -118,10 +151,26 @@ internal val FLUID_AGSL = """
         float3 prv = float3(prevArt.eval(uv * prevArtSize).rgb);
         float3 c = mix(prv, cur, fade);
 
+        // Bass-driven hue shift: warm on bass, cool on treble
+        float hueShift = beatBass * 0.15; // ~54 degrees max
+        float3 hsv = rgb2hsv(c);
+        hsv.x = (hsv.x + hueShift) % 1.0;
+        c = hsv2rgb(hsv);
+
         float mid = (c.r + c.g + c.b) / 3.0;
         c = float3(mid) + (c - float3(mid)) * saturation;
         c *= brightness;
         c = c * (1.0 + contrast) - float3(0.5 * contrast);
+
+        // Beat onset pulse wave: expanding ring from center
+        if (beatOnset != 0) {
+            float2 center = float2(curArtSize.x / 2.0, curArtSize.y / 2.0);
+            float dist = length(fragCoord - center);
+            float waveSpeed = 2000.0 * beatIntensity;
+            float wave = smoothstep(0.0, 50.0 * beatIntensity, dist - seconds * waveSpeed);
+            c += float3(0.3, 0.2, 0.1) * beatBass * beatIntensity * (1.0 - wave);
+        }
+
         return half4(half3(clamp(c, 0.0, 1.0)), 1.0);
     }
 """.trimIndent()
@@ -183,6 +232,102 @@ private const val CROSSFADE_MS = 1400
 private const val APPEAR_MS = 800
 private const val FRAME_SECONDS = 1f / 30f
 
+// Beat-reactive layer for draw-phase visual effects (no recomposition)
+@Composable
+fun BeatReactiveLayer(
+    beatEnergy: StateFlow<BeatEnergySnapshot?>,
+    modifier: Modifier = Modifier,
+    settings: com.bhavya.music.data.local.MiscSettings,
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var isForeground by remember(lifecycle) {
+        mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { owner, _ ->
+            isForeground = owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    // Glass capability gate: API 31+, not low-RAM, HW accelerated
+    val isGlassCapable = remember {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !activityManager.isLowRamDevice &&
+            (context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager)
+                .defaultDisplay
+                .let { Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.getDisplayId() >= 0 }
+    }
+
+    // Battery saver check - read once, update periodically via coroutine
+    val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager }
+    var isPowerSaveMode by remember { mutableStateOf(powerManager.isPowerSaveMode) }
+    val coroutineScope = rememberCoroutineScope()
+    DisposableEffect(powerManager) {
+        val job = coroutineScope.launch {
+            while (true) {
+                delay(5000)
+                isPowerSaveMode = powerManager.isPowerSaveMode
+            }
+        }
+        onDispose { job.cancel() }
+    }
+
+    // Collect beat energy snapshot at draw rate (~33ms)
+    val snapshot by beatEnergy.collectAsStateWithLifecycle(initialValue = null)
+
+    // Apply glass capability and foreground/battery gates
+    val enabled = isGlassCapable && isForeground && !isPowerSaveMode &&
+        settings.beatReactiveEnabled &&
+        (snapshot?.isActive == true)
+
+    val intensity = settings.beatReactiveIntensity.coerceIn(0.1f, 1.0f)
+    val bassEnergy = if (enabled) (snapshot?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val overallRms = if (enabled) (snapshot?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val beatDetected = enabled && (snapshot?.beatDetected == true)
+
+    // Beat shader parameters for AGSL uniforms
+    val beatShaderParams = remember {
+        mutableStateOf(BeatShaderParams(bassEnergy, overallRms, beatDetected, intensity))
+    }
+    beatShaderParams.value = BeatShaderParams(bassEnergy, overallRms, beatDetected, intensity)
+
+    // Provide via CompositionLocal for AgslFluidRenderer to read
+    CompositionLocalProvider(LocalBeatShaderParams provides beatShaderParams.value) {
+        // Subtle scale pulse (1.0–1.02x) + brightness bump on beat
+        // Scale pulse scales with intensity: 1.0 to 1.0 + 0.02 * intensity
+        Box(modifier
+            .graphicsLayer {
+                if (beatDetected) {
+                    val pulse = 1f + 0.02f * intensity
+                    scaleX = pulse
+                    scaleY = pulse
+                } else {
+                    scaleX = 1f
+                    scaleY = 1f
+                }
+                // Optional: brightness bump via color filter would require a shader
+            }
+        ) {
+            content()
+        }
+    }
+}
+
+// Beat shader parameters passed via CompositionLocal from BeatReactiveLayer to AgslFluidRenderer
+data class BeatShaderParams(
+    val bass: Float,
+    val rms: Float,
+    val onset: Boolean,
+    val intensity: Float,
+)
+
+val LocalBeatShaderParams = staticCompositionLocalOf { BeatShaderParams(0f, 0f, false, 1f) }
+
 private val textureCache = LinkedHashMap<String, Bitmap>()
 
 private suspend fun loadTexture(context: Context, url: String): Bitmap? = withContext(Dispatchers.IO) {
@@ -229,6 +374,10 @@ private class AgslFluidRenderer {
         previous: Bitmap,
         fade: Float,
         extraBlur: Boolean = false,
+        beatBass: Float = 0f,
+        beatRms: Float = 0f,
+        beatOnset: Boolean = false,
+        beatIntensity: Float = 1f,
     ) {
         val copies = fluidCopies(width, height, seconds, seed)
         val curShader = BitmapShader(current, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
@@ -246,11 +395,18 @@ private class AgslFluidRenderer {
         shader.setFloatUniform("centre3", copies[3].centreX, copies[3].centreY)
         shader.setFloatUniform("twistA", width * 0.25f, height)
         shader.setFloatUniform("twistB", width * 0.75f, 0f)
-        shader.setFloatUniform("twistRadius", (maxOf(width, height) + minOf(width, height)) / 2f * TWIST_REACH)
+        shader.setFloatUniform("twistRadius", (maxOf(width, height) + minOf(width, height)) / 2f * TWIST_REACH * (1f + beatBass * 0.5f * beatIntensity))
         shader.setFloatUniform("twistAngle", TWIST_ANGLE)
-        shader.setFloatUniform("saturation", SATURATION)
-        shader.setFloatUniform("brightness", if (extraBlur) 0.32f else BRIGHTNESS)
+        shader.setFloatUniform("saturation", SATURATION * (1f + beatBass * 0.3f * beatIntensity))
+        shader.setFloatUniform("brightness", if (extraBlur) 0.32f else BRIGHTNESS + beatRms * 0.3f * beatIntensity)
         shader.setFloatUniform("contrast", CONTRAST)
+
+        // Beat-reactive uniforms
+        shader.setFloatUniform("beatBass", beatBass * beatIntensity)
+        shader.setFloatUniform("beatRms", beatRms * beatIntensity)
+        shader.setIntUniform("beatOnset", if (beatOnset) 1 else 0)
+        shader.setFloatUniform("beatIntensity", beatIntensity)
+
         paint.shader = shader
         canvas.drawRect(0f, 0f, width, height, paint)
     }
@@ -262,6 +418,8 @@ fun FluidArtworkBackground(
     modifier: Modifier = Modifier,
     extraBlur: Boolean = false,
     rotatingBackgroundEnabled: Boolean = true,
+    beatEnergy: StateFlow<BeatEnergySnapshot?> = MutableStateFlow(null),
+    settings: com.bhavya.music.data.local.MiscSettings = com.bhavya.music.data.local.MiscSettings(),
     artworkViewModel: ArtworkViewModel = hiltViewModel(),
     fallback: @Composable () -> Unit,
 ) {
@@ -336,12 +494,66 @@ fun FluidArtworkBackground(
         }
     }
 
+    // Wrap with beat-reactive layer when enabled
+    val beatReactiveEnabled = settings.beatReactiveEnabled
+    if (beatReactiveEnabled) {
+        BeatReactiveLayer(
+            beatEnergy = beatEnergy,
+            modifier = modifier,
+            settings = settings,
+            content = {
+                renderFluidContent(
+                    modifier = Modifier,
+                    current = current,
+                    previous = previous,
+                    appear = appear,
+                    crossfade = crossfade,
+                    seconds = seconds,
+                    seed = seed,
+                    agslRenderer = agslRenderer,
+                    extraBlur = extraBlur,
+                    fallback = fallback,
+                )
+            }
+        )
+    } else {
+        renderFluidContent(
+            modifier = modifier,
+            current = current,
+            previous = previous,
+            appear = appear,
+            crossfade = crossfade,
+            seconds = seconds,
+            seed = seed,
+            agslRenderer = agslRenderer,
+            extraBlur = extraBlur,
+            fallback = fallback,
+        )
+    }
+}
+
+@Composable
+private fun renderFluidContent(
+    modifier: Modifier,
+    current: Bitmap?,
+    previous: Bitmap?,
+    appear: Animatable<Float, androidx.compose.animation.core.AnimationVector1D>,
+    crossfade: Animatable<Float, androidx.compose.animation.core.AnimationVector1D>,
+    seconds: Float,
+    seed: Int,
+    agslRenderer: AgslFluidRenderer?,
+    extraBlur: Boolean,
+    fallback: @Composable () -> Unit,
+) {
     Box(modifier) {
         if (appear.value < 1f || current == null) {
             fallback()
         }
 
         if (current != null) {
+            // Read beat shader parameters from CompositionLocal (provided by BeatReactiveLayer)
+            val beatParams = LocalBeatShaderParams.current
+
             Box(
                 Modifier
                     .fillMaxSize()
@@ -373,6 +585,10 @@ fun FluidArtworkBackground(
                                     previous = prv,
                                     fade = crossfade.value,
                                     extraBlur = extraBlur,
+                                    beatBass = beatParams.bass,
+                                    beatRms = beatParams.rms,
+                                    beatOnset = beatParams.onset,
+                                    beatIntensity = beatParams.intensity,
                                 )
                             }
                         } else {
