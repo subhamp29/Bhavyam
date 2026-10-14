@@ -62,7 +62,7 @@ defaultConfig {
         minSdk = (project.findProperty("minSdk") as? String)?.toIntOrNull() ?: 29
         targetSdk = 35
         versionCode = 32
-        versionName = "2.0"
+        versionName = "2.1"
 
         // Native secrets (addon client lock) live strictly in native .so via
         // SecretsBridge_generated.h (tools/generate_native_secrets.py).
