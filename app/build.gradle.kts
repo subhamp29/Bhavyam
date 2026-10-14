@@ -142,6 +142,14 @@ defaultConfig {
         }
     }
 
+    applicationVariants.all { variant ->
+        val variantName = variant.name
+        val outputName = "bhavya-music-${variantName}-v${versionName}.apk"
+        variant.outputs.all {
+            outputFileName = outputName
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
