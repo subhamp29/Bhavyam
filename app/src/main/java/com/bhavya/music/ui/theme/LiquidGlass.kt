@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,7 +75,12 @@ import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
+import com.bhavya.music.playback.analysis.BeatEnergySnapshot
+import com.bhavya.music.data.local.MiscSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.sign
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -437,9 +443,10 @@ fun rememberGlassInteraction(): GlassInteraction {
 }
 
 /**
- * Interactive liquid glass drawing modifier.
+ * Interactive liquid glass drawing modifier with optional beat-reactive effects.
  * Element MUST be a sibling of the backdrop source, never inside it.
  */
+@Composable
 fun Modifier.drawInteractiveGlass(
     isDark: Boolean,
     backdrop: Backdrop,
@@ -452,6 +459,11 @@ fun Modifier.drawInteractiveGlass(
     blurScale: Float = 1f,
     minScrim: Float = 0.12f,
     maxScrim: Float = 0.5f,
+    // Beat-reactive parameters (optional)
+    beatBass: Float = 0f,
+    beatRms: Float = 0f,
+    beatOnset: Boolean = false,
+    beatIntensity: Float = 1f,
 ): Modifier =
     this
         .drawBackdrop(
@@ -461,11 +473,13 @@ fun Modifier.drawInteractiveGlass(
             effects = {
                 val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
                 val press = interaction?.pressProgress ?: 0f
+
+                // Base glass effects
                 vibrancy()
                 colorControls(
-                    brightness = 0.05f,
-                    contrast = 1f,
-                    saturation = 1.5f,
+                    brightness = 0.05f + beatRms * 0.1f * beatIntensity,
+                    contrast = 1f + beatBass * 0.2f * beatIntensity,
+                    saturation = 1.5f + beatBass * 0.3f * beatIntensity,
                 )
                 blur(
                     (
@@ -474,7 +488,9 @@ fun Modifier.drawInteractiveGlass(
                         } else {
                             lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
                         }
-                    ) * blurScale + 2f.dp.toPx() * press,
+                    ) * blurScale + 2f.dp.toPx() * press
+                        // Beat pulse: slight blur expansion on beat
+                        * (1f + (if (beatOnset) 0.15f * beatIntensity else 0f)),
                 )
                 lens(size.minDimension / 4f + 2f.dp.toPx() * press, size.minDimension / 2f, false)
             },
@@ -498,6 +514,11 @@ fun Modifier.drawInteractiveGlass(
                         blendMode = BlendMode.Plus,
                     )
                 }
+                // Beat onset flash: subtle white overlay on beat
+                if (beatOnset) {
+                    val flashAlpha = (0.15f * beatIntensity).coerceIn(0f, 0.3f)
+                    drawRect(Color.White.copy(alpha = flashAlpha), blendMode = BlendMode.Plus)
+                }
             },
             layerBlock =
                 if (interaction != null) {
@@ -505,9 +526,24 @@ fun Modifier.drawInteractiveGlass(
                         val scale = lerp(1f, pressedScale, interaction.pressProgress)
                         scaleX = scale
                         scaleY = scale
+                        // Beat pulse: subtle scale on beat
+                        if (beatOnset) {
+                            val pulse = 1f + 0.02f * beatIntensity
+                            scaleX *= pulse
+                            scaleY *= pulse
+                        }
                     }
                 } else {
-                    null
+                    // Beat pulse on non-interactive surfaces too
+                    if (beatOnset) {
+                        {
+                            val pulse = 1f + 0.02f * beatIntensity
+                            scaleX = pulse
+                            scaleY = pulse
+                        }
+                    } else {
+                        null
+                    }
                 },
         ).then(
             if (interaction != null) {
@@ -583,6 +619,58 @@ fun Modifier.drawInteractiveGlass(
             highlight = highlight,
         )
     }
+
+    /** Beat-reactive liquidGlass: applies beat-driven brightness, saturation, blur pulse, and scale pulse.
+     *  Requires beatReactiveEnabled in settings and active beat energy snapshot.
+     *  Call site should collect beat energy and pass parameters. */
+    @Composable
+    fun Modifier.liquidGlass(
+        backdrop: Backdrop,
+        luminanceAnimation: Float,
+        beatBass: Float = 0f,
+        beatRms: Float = 0f,
+        beatOnset: Boolean = false,
+        beatIntensity: Float = 1f,
+        shape: Shape = CircleShape,
+        interactive: Boolean = true,
+        highlight: Highlight = Highlight.Default,
+    ): Modifier {
+        if (!LocalLiquidGlass.current) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+        if (!isLiquidGlassBackdropSupported()) {
+            return this
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+        }
+
+        val isDark = LocalIsDarkTheme.current
+        val layer = rememberGraphicsLayer()
+        val interaction = rememberGlassInteraction()
+
+        return this.drawInteractiveGlass(
+            isDark = isDark,
+            backdrop = backdrop,
+            layer = layer,
+            luminanceAnimation = luminanceAnimation,
+            shape = shape,
+            interaction = if (interactive) interaction else null,
+            highlight = highlight,
+            beatBass = beatBass,
+            beatRms = beatRms,
+            beatOnset = beatOnset,
+            beatIntensity = beatIntensity,
+        )
+    }
+
+    data class BeatGlassParams(
+        val bassEnergy: Float,
+        val rms: Float,
+        val onset: Boolean,
+        val intensity: Float,
+    )
 
 /** Interactive liquidGlass overload for luminance-sampling surfaces (MiniPlayer, nav capsule). */
 @Composable
