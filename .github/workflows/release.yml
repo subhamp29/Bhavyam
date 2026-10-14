@@ -38,8 +38,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
+      - name: Build Release APK (unsigned)
+        run: ./gradlew assembleRelease -x validateSigningRelease
 
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
