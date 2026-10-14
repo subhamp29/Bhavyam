@@ -38,8 +38,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Release APK (unsigned)
-        run: ./gradlew assembleRelease -x validateSigningRelease
+      - name: Create debug keystore for CI
+        run: |
+          keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build Release APK
+        run: |
+          export RELEASE_STORE_FILE="${{ github.workspace }}/debug.keystore"
+          export RELEASE_STORE_PASSWORD=android
+          export RELEASE_KEY_ALIAS=androiddebugkey
+          export RELEASE_KEY_PASSWORD=android
+          ./gradlew assembleRelease
 
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
