@@ -12,6 +12,8 @@ import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -239,6 +241,7 @@ import com.bhavya.music.ui.theme.LocalLiquidGlassOverlayBackdrop
 import com.bhavya.music.ui.theme.LiquidGlassPreset
 import com.bhavya.music.ui.theme.Backdrop
 import com.bhavya.music.ui.theme.rememberLayerBackdrop
+import com.bhavya.music.ui.theme.BeatGlassParams
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -344,7 +347,7 @@ class PlayerViewModel @Inject constructor(
 
     private val _canvasState = MutableStateFlow<com.bhavya.music.data.canvas.CanvasArtwork?>(null)
     val canvasState = _canvasState.asStateFlow()
-    private var currentCanvasTrackKey: String? = null
+    
     private var canvasJob: Job? = null
 
     private companion object {
@@ -948,6 +951,8 @@ private fun MiniPlayer(
     val isGlass = liquidGlass && isLiquidGlassBackdropSupported() && backdrop != null
     val layer = rememberGraphicsLayer()
     val luminance = remember { Animatable(0.5f) }
+    // Collect beat-reactive glass parameters
+    val beatGlassParams = rememberBeatGlassParams(beatEnergy, settings)
     LaunchedEffect(layer, isGlass, track.videoId) {
         if (!isGlass) {
             luminance.snapTo(0.5f)
@@ -1034,7 +1039,15 @@ private fun MiniPlayer(
             shadowElevation = if (edgeToEdge || isGlass) 0.dp else 12.dp,
             modifier = Modifier.fillMaxWidth().then(
                 if (isGlass && backdrop != null) {
-                    Modifier.liquidGlass(backdrop, layer, luminance.value, shape)
+                    Modifier.liquidGlass(
+                        backdrop,
+                        luminance.value,
+                        beatBass = beatGlassParams.bassEnergy,
+                        beatRms = beatGlassParams.rms,
+                        beatOnset = beatGlassParams.onset,
+                        beatIntensity = beatGlassParams.intensity,
+                        shape = shape,
+                    )
                 } else Modifier
             ),
         ) {
@@ -1175,6 +1188,43 @@ private fun MiniPlayerProgress(progressState: StateFlow<PlaybackProgressState>) 
                 .background(MaterialTheme.colorScheme.primary),
         )
     }
+}
+
+@Composable
+private fun rememberBeatGlassParams(
+    beatEnergy: StateFlow<BeatEnergySnapshot?>,
+    settings: com.bhavya.music.data.local.MiscSettings,
+): com.bhavya.music.ui.theme.BeatGlassParams {
+    val snapshot = beatEnergy.collectAsStateWithLifecycle(initialValue = null)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val isForeground = remember(lifecycle) {
+        mutableStateOf(lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { owner, _ ->
+            isForeground.value = owner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val powerManager = LocalContext.current.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+    val isPowerSaveMode = remember { mutableStateOf(powerManager.isPowerSaveMode) }
+    val coroutineScope = rememberCoroutineScope()
+    DisposableEffect(powerManager) {
+        val job = coroutineScope.launch {
+            while (true) {
+                delay(5000)
+                isPowerSaveMode.value = powerManager.isPowerSaveMode
+            }
+        }
+        onDispose { job.cancel() }
+    }
+    val enabled = settings.beatReactiveEnabled && isForeground.value && !isPowerSaveMode.value && (snapshot.value?.isActive == true)
+    val intensity = settings.beatReactiveIntensity.coerceIn(0.1f, 1.0f)
+    val bassEnergy = if (enabled) (snapshot.value?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val overallRms = if (enabled) (snapshot.value?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val beatDetected = enabled && (snapshot.value?.beatDetected == true)
+    return com.bhavya.music.ui.theme.BeatGlassParams(bassEnergy, overallRms, beatDetected, intensity)
 }
 
 @Composable
