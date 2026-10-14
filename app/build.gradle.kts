@@ -142,6 +142,16 @@ defaultConfig {
         }
     }
 
+    applicationVariants.all { variant ->
+        val variantName = variant.name
+        val version = variant.mergedFlavor.versionName ?: defaultConfig.versionName ?: "unknown"
+        val outputName = "app-${variantName}-v$version.apk"
+        variant.outputs.all { output ->
+            (output as groovy.lang.GroovyObject).setProperty("outputFileName", outputName)
+            true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
