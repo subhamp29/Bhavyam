@@ -42,17 +42,20 @@ jobs:
         run: |
           keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Build Release APK
+      - name: Build all APK variants
         run: |
           export RELEASE_STORE_FILE="${{ github.workspace }}/debug.keystore"
           export RELEASE_STORE_PASSWORD=android
           export RELEASE_KEY_ALIAS=androiddebugkey
           export RELEASE_KEY_PASSWORD=android
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug assembleRelease assembleRawRelease
 
-      - name: Upload APK to Release
+      - name: Upload APKs to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/rawRelease/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
