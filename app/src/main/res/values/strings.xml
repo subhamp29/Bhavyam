@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bhavyam</string>
     <string name="widget_name">Bhavyam Player</string>
@@ -114,7 +114,7 @@
     <string name="settings_beat_reactive_on">Shader effects active • hue shift, brightness pulse, twist wave</string>
     <string name="settings_beat_reactive_off">Static background • no beat-driven animation</string>
     <string name="settings_beat_reactive_intensity">Beat Reactive Intensity</string>
-    <string name="settings_beat_reactive_intensity_sub">%1$.0f%% • master scale for all beat-driven effects</string>
+    <string name="settings_beat_reactive_intensity_sub">%1$d%% • master scale for all beat-driven effects</string>
     <string name="settings_beat_reactive_sync">Beat Reactive Sync Offset</string>
     <string name="settings_beat_reactive_sync_sub">%1$d ms • positive = visuals early, negative = visuals late</string>
 
