@@ -147,7 +147,7 @@ defaultConfig {
         val version = variant.mergedFlavor.versionName ?: defaultConfig.versionName ?: "unknown"
         val outputName = "bhavya-music-${variantName}-v$version.apk"
         variant.outputs.all { output ->
-            output.outputFileName = outputName
+            output.setProperty("outputFileName", outputName)
             true
         }
     }
