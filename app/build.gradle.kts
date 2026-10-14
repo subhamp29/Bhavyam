@@ -145,7 +145,12 @@ defaultConfig {
     applicationVariants.all { variant ->
         val variantName = variant.name
         val version = variant.mergedFlavor.versionName ?: defaultConfig.versionName ?: "unknown"
-        val outputName = "app-${variantName}-v$version.apk"
+        val outputName = when (variantName) {
+            "release" -> "Bhavyam-v$version-1-universal.apk"
+            "rawRelease" -> "Bhavyam-v$version-universal-uncompressed.apk"
+            "debug" -> "Bhavyam-v$version-android7.apk"
+            else -> "Bhavyam-v$version-$variantName.apk"
+        }
         variant.outputs.all { output ->
             (output as groovy.lang.GroovyObject).setProperty("outputFileName", outputName)
             true
