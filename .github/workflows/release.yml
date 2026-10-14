@@ -50,12 +50,22 @@ jobs:
           export RELEASE_KEY_PASSWORD=android
           ./gradlew assembleDebug assembleRelease assembleRawRelease
 
+      - name: Stage APKs with Release Names
+        run: |
+          mkdir -p final_apk
+          TAG="${GITHUB_REF_NAME#v}"
+          TAG="${TAG:-2.1}"
+          cp app/build/outputs/apk/release/*.apk final_apk/Bhavyam-v${TAG}-1-universal.apk
+          cp app/build/outputs/apk/rawRelease/*.apk final_apk/Bhavyam-v${TAG}-universal-uncompressed.apk
+          cp app/build/outputs/apk/debug/*.apk final_apk/Bhavyam-v${TAG}-android7.apk
+          (cd final_apk && sha256sum *.apk > SHA256SUMS.txt)
+          ls -la final_apk/
+
       - name: Upload APKs to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/apk/rawRelease/*.apk
+            final_apk/*.apk
+            final_apk/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
