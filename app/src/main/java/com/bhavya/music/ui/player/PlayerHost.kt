@@ -348,6 +348,7 @@ class PlayerViewModel @Inject constructor(
     private val _canvasState = MutableStateFlow<com.bhavya.music.data.canvas.CanvasArtwork?>(null)
     val canvasState = _canvasState.asStateFlow()
     
+    private var currentCanvasTrackKey: String? = null
     private var canvasJob: Job? = null
 
     private companion object {
