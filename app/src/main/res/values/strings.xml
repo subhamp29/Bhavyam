@@ -14,6 +14,9 @@
     <string name="update_available">Update Available</string>
     <string name="update">Update</string>
     <string name="dismiss_update">Dismiss update</string>
+    <string name="update_whats_new">What’s new</string>
+    <string name="update_collapse_notes">Collapse release notes</string>
+    <string name="update_expand_notes">Expand release notes</string>
     <string name="update_ready_to_install">Bhavyam v%1$s is ready to install</string>
     <string name="update_button_download">Download</string>
     <string name="update_button_install">Install</string>

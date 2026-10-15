@@ -136,6 +136,17 @@ import com.bhavya.music.ui.theme.liquidGlassSource
 import com.bhavya.music.ui.common.updateActionEnabled
 import com.bhavya.music.ui.common.updateActionLabel
 import com.bhavya.music.ui.common.updateInstallSubtitle
+import com.bhavya.music.ui.common.updateStateIcon
+import com.bhavya.music.ui.common.updateDownloadProgress
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.BorderStroke
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -275,19 +286,21 @@ fun MainShell(
         // App update prompt banner (only shown on app open when an update is available and not dismissed)
         AnimatedVisibility(
             visible = showUpdateBanner,
-            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.BottomCenter)
                 .adaptiveContentWidth(maxWidth = 600.dp)
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = FloatingNavDefaults.ContentBottomPadding + 8.dp)
                 .zIndex(10f),
         ) {
             UpdatePromptCard(
                 installState = updateInfo.installState,
                 canInstallInApp = updateInfo.canInstallInApp,
                 version = updateInfo.latestVersion,
+                releaseNotes = updateInfo.releaseNotes,
+                backdrop = if (navGlass) navigationBackdrop else null,
                 onUpdate = { mainShellViewModel.onUpdateAction(context) },
                 onDismiss = { mainShellViewModel.dismissUpdate() },
             )
@@ -324,69 +337,207 @@ private fun UpdatePromptCard(
     installState: com.bhavya.music.data.update.UpdateInstallState,
     canInstallInApp: Boolean,
     version: String,
+    releaseNotes: String = "",
+    backdrop: LayerBackdrop? = null,
     onUpdate: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val subtitle = updateInstallSubtitle(installState, version, canInstallInApp)
     val actionLabel = updateActionLabel(installState, canInstallInApp)
     val actionEnabled = updateActionEnabled(installState)
+    val isFailed = installState is com.bhavya.music.data.update.UpdateInstallState.Failed
+    val isDownloading = installState is com.bhavya.music.data.update.UpdateInstallState.Downloading
+    val downloadProgress = updateDownloadProgress(installState)
+    val stateIcon = updateStateIcon(installState)
+
+    val cardShape = RoundedCornerShape(22.dp)
+    val liquidGlass = LocalLiquidGlass.current && isLiquidGlassBackdropSupported() && backdrop != null
+
+    val isDark = LocalIsDarkTheme.current
+    val containerColor = when {
+        isFailed -> MaterialTheme.colorScheme.errorContainer
+        liquidGlass -> Color.Transparent
+        isDark -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.88f)
+        else -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.92f)
+    }
+
+    val contentColor = when {
+        isFailed -> MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    val iconTint = when {
+        isFailed -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    var notesExpanded by remember { mutableStateOf(false) }
+
+    val glassModifier = if (liquidGlass && !isFailed) {
+        Modifier.liquidGlass(
+            backdrop = backdrop!!,
+            shape = cardShape,
+            interactive = false,
+        )
+    } else {
+        Modifier
+    }
 
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        shadowElevation = 8.dp,
-        tonalElevation = 6.dp,
-        modifier = Modifier.fillMaxWidth(),
+        shape = cardShape,
+        color = containerColor,
+        contentColor = contentColor,
+        shadowElevation = if (liquidGlass && !isFailed) 0.dp else 8.dp,
+        tonalElevation = if (liquidGlass && !isFailed) 0.dp else 4.dp,
+        border = if (isFailed) {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
+        } else if (!liquidGlass) {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+        } else null,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(glassModifier),
     ) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        Column(
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(
-                imageVector = Icons.Filled.CloudDownload,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(24.dp),
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update_available),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
-                )
-            }
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.primary,
+            Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable(enabled = actionEnabled, onClick = onUpdate),
-            ) {
-                Text(
-                    text = actionLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                )
-            }
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(28.dp),
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = if (isDownloading) 10.dp else 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.dismiss_update),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                    modifier = Modifier.size(18.dp),
+                    imageVector = stateIcon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp),
                 )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = if (isFailed) {
+                            androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update_title_failed)
+                        } else {
+                            androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update_available)
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = contentColor.copy(alpha = 0.85f),
+                    )
+
+                    if (releaseNotes.isNotBlank()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { notesExpanded = !notesExpanded }
+                                .padding(vertical = 2.dp)
+                                .semantics { role = Role.Button },
+                        ) {
+                            Text(
+                                text = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.update_whats_new),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = iconTint,
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Icon(
+                                imageVector = if (notesExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                contentDescription = androidx.compose.ui.res.stringResource(
+                                    if (notesExpanded) com.bhavya.music.R.string.update_collapse_notes else com.bhavya.music.R.string.update_expand_notes,
+                                ),
+                                tint = iconTint,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                }
+
+                FilledTonalButton(
+                    onClick = onUpdate,
+                    enabled = actionEnabled,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = if (isFailed) {
+                        ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                            disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.38f),
+                            disabledContentColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.38f),
+                        )
+                    } else {
+                        ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        )
+                    },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .semantics { role = Role.Button },
+                ) {
+                    Text(
+                        text = actionLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = androidx.compose.ui.res.stringResource(com.bhavya.music.R.string.dismiss_update),
+                        tint = contentColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = notesExpanded && releaseNotes.isNotBlank()) {
+                Text(
+                    text = releaseNotes.trim(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor.copy(alpha = 0.8f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 52.dp, end = 16.dp, bottom = 12.dp),
+                )
+            }
+
+            if (isDownloading) {
+                if (downloadProgress != null) {
+                    LinearProgressIndicator(
+                        progress = { downloadProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    )
+                } else {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    )
+                }
             }
         }
     }

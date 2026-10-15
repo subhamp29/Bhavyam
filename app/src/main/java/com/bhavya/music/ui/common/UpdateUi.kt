@@ -2,6 +2,11 @@ package com.bhavya.music.ui.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
 import com.bhavya.music.R
 import com.bhavya.music.data.update.UpdateFailure
 import com.bhavya.music.data.update.UpdateInstallState
@@ -81,3 +86,15 @@ fun updateRowTitle(
 
 /** A running transfer owns the action: re-tapping would enqueue a second download into the same destination. */
 fun updateActionEnabled(installState: UpdateInstallState): Boolean = !installState.isDownloading
+
+fun updateStateIcon(installState: UpdateInstallState): ImageVector = when (installState) {
+    is UpdateInstallState.Failed -> Icons.Filled.ErrorOutline
+    is UpdateInstallState.ReadyToInstall -> Icons.Filled.CheckCircle
+    else -> Icons.Filled.CloudDownload
+}
+
+fun updateDownloadProgress(installState: UpdateInstallState): Float? {
+    if (installState !is UpdateInstallState.Downloading) return null
+    val percent = installState.progressPercent ?: return null
+    return (percent / 100f).coerceIn(0f, 1f)
+}
