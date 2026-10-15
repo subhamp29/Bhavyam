@@ -526,25 +526,8 @@ fun Modifier.drawInteractiveGlass(
                         val scale = lerp(1f, pressedScale, interaction.pressProgress)
                         scaleX = scale
                         scaleY = scale
-                        // Beat pulse: subtle scale on beat
-                        if (beatOnset) {
-                            val pulse = 1f + 0.02f * beatIntensity
-                            scaleX *= pulse
-                            scaleY *= pulse
-                        }
                     }
-                } else {
-                    // Beat pulse on non-interactive surfaces too
-                    if (beatOnset) {
-                        {
-                            val pulse = 1f + 0.02f * beatIntensity
-                            scaleX = pulse
-                            scaleY = pulse
-                        }
-                    } else {
-                        null
-                    }
-                },
+                } else null,
         ).then(
             if (interaction != null) {
                 Modifier.pointerInput(interaction) { interaction.detectPress(this) }
