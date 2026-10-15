@@ -286,15 +286,32 @@ fun BeatReactiveLayer(
         (snapshot?.isActive == true)
 
     val intensity = settings.beatReactiveIntensity.coerceIn(0.1f, 1.0f)
-    val bassEnergy = if (enabled) (snapshot?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
-    val overallRms = if (enabled) (snapshot?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val rawBass = if (enabled) (snapshot?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val rawRms = if (enabled) (snapshot?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
     val beatDetected = enabled && (snapshot?.beatDetected == true)
+
+    // Flowy exponential moving average for fluid background shader
+    val smoothedBass = remember { mutableFloatStateOf(0f) }
+    val smoothedRms = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(rawBass, rawRms, enabled) {
+        if (!enabled) {
+            smoothedBass.floatValue = 0f
+            smoothedRms.floatValue = 0f
+        } else {
+            val bassAlpha = if (rawBass > smoothedBass.floatValue) 0.28f else 0.08f
+            smoothedBass.floatValue += (rawBass - smoothedBass.floatValue) * bassAlpha
+
+            val rmsAlpha = if (rawRms > smoothedRms.floatValue) 0.28f else 0.08f
+            smoothedRms.floatValue += (rawRms - smoothedRms.floatValue) * rmsAlpha
+        }
+    }
 
     // Beat shader parameters for AGSL uniforms
     val beatShaderParams = remember {
-        mutableStateOf(BeatShaderParams(bassEnergy, overallRms, beatDetected, intensity))
+        mutableStateOf(BeatShaderParams(0f, 0f, false, intensity))
     }
-    beatShaderParams.value = BeatShaderParams(bassEnergy, overallRms, beatDetected, intensity)
+    beatShaderParams.value = BeatShaderParams(smoothedBass.floatValue, smoothedRms.floatValue, beatDetected, intensity)
 
     // Provide via CompositionLocal for AgslFluidRenderer to read
     CompositionLocalProvider(LocalBeatShaderParams provides beatShaderParams.value) {

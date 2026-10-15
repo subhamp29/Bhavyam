@@ -1222,10 +1222,34 @@ private fun rememberBeatGlassParams(
     }
     val enabled = settings.beatReactiveEnabled && isForeground.value && !isPowerSaveMode.value && (snapshot.value?.isActive == true)
     val intensity = settings.beatReactiveIntensity.coerceIn(0.1f, 1.0f)
-    val bassEnergy = if (enabled) (snapshot.value?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
-    val overallRms = if (enabled) (snapshot.value?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val rawBass = if (enabled) (snapshot.value?.bassEnergy?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
+    val rawRms = if (enabled) (snapshot.value?.overallRms?.coerceIn(0f, 1f) ?: 0f) * intensity else 0f
     val beatDetected = enabled && (snapshot.value?.beatDetected == true)
-    return com.bhavya.music.ui.theme.BeatGlassParams(bassEnergy, overallRms, beatDetected, intensity)
+
+    // Smooth exponential moving average (EMA) filter: fast attack (0.28) for responsive beat feel,
+    // gentle decay (0.08) for velvety smooth, flowy dissipation.
+    val smoothedBass = remember { mutableFloatStateOf(0f) }
+    val smoothedRms = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(rawBass, rawRms, enabled) {
+        if (!enabled) {
+            smoothedBass.floatValue = 0f
+            smoothedRms.floatValue = 0f
+        } else {
+            val bassAlpha = if (rawBass > smoothedBass.floatValue) 0.28f else 0.08f
+            smoothedBass.floatValue += (rawBass - smoothedBass.floatValue) * bassAlpha
+
+            val rmsAlpha = if (rawRms > smoothedRms.floatValue) 0.28f else 0.08f
+            smoothedRms.floatValue += (rawRms - smoothedRms.floatValue) * rmsAlpha
+        }
+    }
+
+    return com.bhavya.music.ui.theme.BeatGlassParams(
+        bassEnergy = smoothedBass.floatValue,
+        rms = smoothedRms.floatValue,
+        onset = beatDetected,
+        intensity = intensity,
+    )
 }
 
 @Composable
